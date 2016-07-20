@@ -1,5 +1,6 @@
 import pandas as pd
 import string
+import cs
 def get_database(file):
     database=pd.read_hdf(file)
     return  database
@@ -105,24 +106,38 @@ def create_buisness_crm(database):
     return br_crm
 
 
-def create_crm():
+def create_crm(database):
+    writer = ExcelWriter('crm_%s.xlsx' % database)
+    create_residential_crm(database).to_excel(writer,'RR')
+    create_government_crm(database).to_excel(writer,'GO')
+    create_buisness_crm(database).to_excel(writer,'BR')
+    writer.save()
+    print 'CRM saved in xlsx format with file name crm_%s.xlsx'%database
 
 
-def database2xls(database)
+def database2xls(database):
+    writer = ExcelWriter('%s.xlsx' % database)
+    database.to_excel(writer)
+    writer.save()
+    print 'Database saved in xlsx format with file name %s.xlsx'%database
 
-def create_ouput_crm():
+def get_areacode(province):
+    return codes.get(arg.lower(),arg)
 
-def place_to_code(arg):
-    codes={
-        'Kalookan City':'KC',
-        'Las Pinas':'LP',
-        'Makati':'Mkti',
-        'Malabon':'Mal',
-        'Mandaluyong':'Mand',
-        'Manila':'Mla',
-        'Marikina':'Mkna',
-        'Muntinlupa':'Munt'
-        'Marikina':'Mkna',
-        
-    }
-    return codes.get(arg,arg)
+def init_config():
+    with open('areacodes') as csvfile:
+        reader= csv.reader(csvfile)
+        codes = dict((rows[0],rows[1]) for rows in reader)
+    with open('prov_abbreviations') as csvfile:
+        reader= csv.reader(csvfile)
+        prov_abbr = dict((rows[0],rows[1]) for rows in reader)
+    with open('city_abbreviations') as csvfile:
+        reader= csv.reader(csvfile)
+        city_abbr = dict((rows[0],rows[1]) for rows in reader)
+
+def province2abr(arg):
+    return prov_abbr.get(arg.lower(),arg)
+
+
+def city2abr(arg):
+    return city_abbr.get(arg.lower(),arg)
