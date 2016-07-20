@@ -1,22 +1,25 @@
-import imports
+from functions.interface_functions import *
 import os
+import glob
 
-print 'What would you like to do \n 1. Update database \n 2. Output CRM \n 3. Output database 4. Create database (BIGBANG)
-response = raw_input("default[1]: ")
-if response == 1 or response = False:
-    newest = min(glob.iglob('database_backups/*.hdf5'), key=os.path.getctime)
-    dbfile=raw_input('What database would you like to update? Input relative path. (default: %s) ' % newest)
-    update=raw_input('What file will you use to update the database? Input relative path: ')
-    if file == False:
-        database=get_database(newest)
+
+while True:
+    print 'What would you like to do?\n1. Update database \n2. Export CRM \n3. Export database \n4. Create database (BIGBANG!)\n5. Exit'
+    response = raw_input("default[1]: ") or '1'
+# Updating the database
+    if response == '1':
+        update_prompt()
+#Exporting in CRM format with excel file
+    elif response == '2':
+        crm_prompt()
+#Exporting database to excel file
+    elif response == '3':
+        export_prompt()
+#Bigbang: creating the databse from scatch
+    elif response == '4':
+        big_bang()
+#Exit
+    elif response =='5':
+        break
     else:
-        database=get_database(dbfile)
-    database=update_database(update,database)
-    save_database(database)
-elif response == 2:
-    dbfile=raw_input('What database would you like to use to build the CRM? Input relative path. (default: %s) ' % newest)
-    if file == False:
-        database=get_database(newest)
-    else:
-        database=get_database(dbfile)
-    create_crm(database)
+        print 'Invalid input!'
