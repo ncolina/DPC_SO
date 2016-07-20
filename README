@@ -3,7 +3,20 @@ README
 This python script will read from a database of entries and add the entries given is a txt file. The updated database will be saved and the database will be output in formats specifed.
 
 TODO:
-IN PROGRESS create main interaction script
-organize the "or call" scheme in generating the CRM
-proper capitalization of business names
+DONE: create main interaction script
+ONE! program the "or call" scheme in generating the CRM
+in progress:full implementation of abbreviation and areacodes
+  to do: finish LUT and impement abbreviations
+  DONE: arecode implementation but not transcription from pdf
+DONE:partial crm creation based on category RR GO BR
+DONE proper capitalization of business names -> replace capwords function
+error handling/ debugging
 DONE file naming of database
+
+
+NOTES:
+formatting of config files
+small_words - separate by | | |
+areacodes -csv
+city_abbreviations - csv
+prov_abbreviations -csv
