@@ -1,6 +1,7 @@
 import pandas as pd
 import string
 import cs
+from datetime import datetime
 def get_database(file):
     database=pd.read_hdf(file)
     return  database
@@ -27,10 +28,13 @@ def update_database(update_file,database):
     database.reset_index(drop=True,inplace=True)
     return database
 
+def save_database(database):
+    database.to_hdf('database_backups/database-%s'%datetime, 'database', mode=w, format='table')
+    print "Database has been saved as database-%s.hdf5 in the database_backups folder"%datetime
 def create_residential_crm(database):
     rr=database[database.acc_type=='RR']
     rr_crm=pd.DataFrame()
-    rr_crm['Areacode']=rr.mem_wstd.str.slice(0,1)
+    rr_crm['Areacode']=get_areacode(rr.distribution_code.str.split('    ',1).str.get(1))
     rr_crm['Phone']=rr.mem_wstd.str.slice(-7)
     rr_crm['name1']=rr.last_name
     rr_crm['name2']=rr.first_name
@@ -56,7 +60,7 @@ def create_residential_crm(database):
 def create_government_crm(database):
     go=database[database.acc_type=='GO']
     go_crm=pd.DataFrame()
-    go_crm['Areacode']=go.mem_wstd.str.slice(0,1)
+    go_crm['Areacode']=get_areacode(go.distribution_code.str.split('    ',1).str.get(1))
     go_crm['Phone']=go.mem_wstd.str.slice(-7)
     go_crm['name1']=go.last_name
     go_crm['name2']=go.first_name
@@ -82,7 +86,7 @@ def create_government_crm(database):
 def create_buisness_crm(database):
     br=database[database.acc_type=='BR']
     br_crm=pd.DataFrame()
-    br_crm['Areacode']=br.mem_wstd.str.slice(0,1)
+    br_crm['Areacode']=get_areacode(br.distribution_code.str.split('    ',1).str.get(1))
     br_crm['Phone']=br.mem_wstd.str.slice(-7)
     br_crm['name1']=br.last_name
     br_crm['name2']=br.first_name
@@ -105,7 +109,6 @@ def create_buisness_crm(database):
     br_crm.Province = br_crm.Province.apply(lambda x: string.capwords(x))
     return br_crm
 
-
 def create_crm(database):
     writer = ExcelWriter('crm_%s.xlsx' % database)
     create_residential_crm(database).to_excel(writer,'RR')
@@ -113,7 +116,6 @@ def create_crm(database):
     create_buisness_crm(database).to_excel(writer,'BR')
     writer.save()
     print 'CRM saved in xlsx format with file name crm_%s.xlsx'%database
-
 
 def database2xls(database):
     writer = ExcelWriter('%s.xlsx' % database)
@@ -137,7 +139,6 @@ def init_config():
 
 def province2abr(arg):
     return prov_abbr.get(arg.lower(),arg)
-
 
 def city2abr(arg):
     return city_abbr.get(arg.lower(),arg)

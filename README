@@ -1,3 +1,9 @@
 README
 
-This python script will read from a database of entries and add the entries given is a txt file. The updated database will be saved and the database will be output in formats specifed.   
+This python script will read from a database of entries and add the entries given is a txt file. The updated database will be saved and the database will be output in formats specifed.
+
+TODO:
+IN PROGRESS create main interaction script
+organize the "or call" scheme in generating the CRM
+proper capitalization of business names
+DONE file naming of database
