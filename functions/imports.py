@@ -43,8 +43,8 @@ def get_database(file):
 
 def update_database(update_file,database,bigbang=False):
     so_file=update_file
-    widths = ConfigSectionMap('input_format').values()
-    names=ConfigSectionMap('input_format').keys()
+    names = ConfigSectionMap('input_format').keys()
+    widths=[int(x) for x in ConfigSectionMap('input_format').values()]
     update=pd.read_fwf(so_file,
                    header=None,
                    widths=widths,
@@ -71,7 +71,7 @@ def update_database(update_file,database,bigbang=False):
 
 def save_database(database,filename=None):
     filename=filename or 'database_backups/database-%s.hdf5'% time.strftime('%Y-%m-%d-%H-%M-%S')
-    database.to_hdf(fielname, 'database', mode='w', format='table')
+    database.to_hdf(filename, 'database', mode='w', format='table')
     print "Database has been saved as %s in the database_backups folder"% filename
 
 #Input database as a  pandas dataframe and returns a pandas dataframe with data in CRM format
@@ -139,7 +139,7 @@ def create_government_crm(database,export=False,filename=None):
     go_crm= or_call(go_crm)
 
     if export == True:
-        filename = filename or 'crm_go_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S'))
+        filename = filename or 'crm_go_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
         writer = pd.ExcelWriter(filename)
         go_crm.to_excel(writer,'GO')
         writer.save()
@@ -188,6 +188,14 @@ def create_crm(database,filename=None):
     create_buisness_crm(database).to_excel(writer,'BR')
     writer.save()
     print 'CRM saved in xlsx format with file name %s'%filename
+
+def create_crm_csv(database,filename=None):
+    filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+    create_residential_crm(database).to_csv('rr_%s'%filename)
+    create_government_crm(database).to_csv('go_%s'%filename)
+    create_buisness_crm(database).to_csv('br_%s'%filename)
+    print 'CRM saved in csv format with file names %s'%filename
+
 
 def database2xls(database,filename=None):
     filename=filename or 'db_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')

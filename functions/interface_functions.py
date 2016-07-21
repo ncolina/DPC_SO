@@ -86,7 +86,7 @@ def commandline():
     parser.add_argument('-i', '--inputfile',dest='input',help='inputfile to update/create the db')
     parser.add_argument('-db', '--database',dest='db',help='databse to be exported or updated')
     parser.add_argument('-o', '--outputfile',dest='output',help='output filename/location')
-    parser.add_argument('-m', '--mode', dest='mode',default='update_db',choices=['update_db', 'bigbang', 'db2xls','db2csv', 'exportcrm'], help='update_db bigbang exportdb exportcrm exportgo exportbr exportrr',required=True)
+    parser.add_argument('-m', '--mode', dest='mode',default='interactive',choices=['interactive','update_db', 'bigbang', 'db2xls','db2csv', 'exportcrm'], help='update_db bigbang exportdb exportcrm exportgo exportbr exportrr')
     args = parser.parse_args()
     if args.mode=='update_db':
         dbfile=args.db
@@ -127,3 +127,5 @@ def commandline():
             sys.exit("database file does not exist")
         database=get_database(dbfile)
         create_crm(database,filename=output)
+    elif args.mode=='interactive':
+        interactive()
