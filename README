@@ -22,7 +22,7 @@ DONE proper capitalization of business names -> replace capwords function
 error handling/ debugging - random text, no name and number should be logged
 DONE file naming of database
 DONEAdd user doing editing to the db
-Testing:Commandline interface
+BUGGY:Commandline interface
   -switches for mode, input, output,
 Logging to /var/log/DPCSO inclding how the program was run, who ran it, and any exceptions
 DONE: update save functions to handle additional output filename argument
