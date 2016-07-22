@@ -6,6 +6,8 @@ Package Reqirements:
 -pandas
 -numpy
 -glob
+-pytables
+
 
 TO run the script interactively:
 python main.py
