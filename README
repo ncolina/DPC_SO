@@ -6,6 +6,8 @@ Package Reqirements:
 -pandas
 -numpy
 -glob
+-pytables
+
 
 TO run the script interactively:
 python main.py
@@ -43,7 +45,15 @@ configurable crm output
 check and remove complete duplicates from the database
 DONE: export to csv Done db todo: add to commandline interface
 use estate if street name isnt given in making crm based on switch
-Unify the config files
+if numbers are the same keep most recent in the crm output
+if list code != PB or publish do not output to crm
+output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
+           can add class code in database(csv) then filter at yellow page crm output
+product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
+            do at crm creation
+output crm file to hdf5
+
+
 
 
 NOTES:
