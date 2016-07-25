@@ -27,14 +27,14 @@ def crm_prompt():
             break
         print 'That file does not exist.'
     choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
-    ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]') or 'Y'
+    ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]: ') or 'Y'
     database=get_database(dbfile)
     if ab_choice == 'Y' or ab_choice =='y': #if abbreviations are not desired then it should be said by having any othe input except Y/y
         abbr=True
     else:
         abbr = False
     if choice == 'ALL':
-        create_crm(database)
+        create_crm_csv(database)
     elif choice == 'GO':
         create_government_crm(database, export=True,abbr=abbr)
     elif choice == 'BR':
@@ -53,7 +53,7 @@ def export_prompt():
             break
         print 'That file does not exist.'
     database=get_database(dbfile)
-    database2xls(database)
+    database2csv(database)
 
 def big_bang():
     while True:

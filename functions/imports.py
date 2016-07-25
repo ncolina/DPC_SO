@@ -7,19 +7,15 @@ import glob
 import os
 import ConfigParser
 
-with open('config/areacodes') as csvfile:
-    reader= csv.reader(csvfile)
-    codes = dict((rows[0],rows[1]) for rows in reader)
-with open('config/prov_abbreviations') as csvfile:
-    reader= csv.reader(csvfile)
-    prov_abbr = dict((rows[0],rows[1]) for rows in reader)
-with open('config/city_abbreviations') as csvfile:
-    reader= csv.reader(csvfile)
-    city_abbr = dict((rows[0],rows[1]) for rows in reader)
-
-
 Config = ConfigParser.ConfigParser()
 Config.read("config/input_format")
+Config.read("config/areacodes")
+Config.read("config/prov_abbreviations")
+Config.read("config/city_abbreviations")
+prov_abbr=ConfigSectionMap('prov_abbreviations')
+city_abbr=ConfigSectionMap('city_abbreviations')
+codes=ConfigSectionMap('areacodes')
+
 def ConfigSectionMap(section):
     dict1 = {}
     options = Config.options(section)
@@ -33,9 +29,6 @@ def ConfigSectionMap(section):
             dict1[option] = None
     return dict1
 
-
-
-
 def get_database(file):
     database=pd.read_hdf(file,'database')
     return  database
@@ -48,10 +41,12 @@ def update_database(update_file,database,bigbang=False):
                    header=None,
                    widths=widths,
                    names=names,
-                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str},
+                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str,'old_wstd':str,'so_date':str},
+                   #error_bad_lines=True,
+                   #dtype='object',
                    index_col=None
                   )
-    update = update.fillna('')
+    update.fillna('', inplace=True)
 
     update['acc_type']=update['acc_type'].astype('category')
     update['src']=so_file.split('/')[-1]
@@ -104,11 +99,11 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     if abbr == True:
         apply_abbr(rr_crm)
     if export == True:
-        filename=filename or 'crm_rr_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
-        writer = pd.ExcelWriter(filename)
-        rr_crm.to_excel(writer,'RR')
-        writer.save()
-        print 'RR CRM saved in xlsx format with file name %s'%filename
+        filename=filename or 'crm_rr_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+        #writer = pd.ExcelWriter(filename)
+        rr_crm.to_csv(filename)
+        #writer.save()
+        print 'RR CRM saved in csv format with file name %s'%filename
     return rr_crm
 
 def create_government_crm(database,export=False,filename=None,abbr=True):
@@ -139,11 +134,11 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     if abbr == True:
         apply_abbr(go_crm)
     if export == True:
-        filename = filename or 'crm_go_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
-        writer = pd.ExcelWriter(filename)
-        go_crm.to_excel(writer,'GO')
-        writer.save()
-        print 'GO CRM saved in xlsx format with file name %s'% filename
+        filename = filename or 'crm_go_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+        #writer = pd.ExcelWriter(filename)
+        go_crm.to_csv(filename)
+        #writer.save()
+        print 'GO CRM saved in csv format with file name %s'% filename
     return go_crm
 
 def create_buisness_crm(database,export=False,filename=None,abbr=True):
@@ -176,10 +171,10 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
         br_crm=apply_abbr(br_crm)
     if export == True:
         filename= filename or 'crm_br_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
-        writer = pd.ExcelWriter(filename)
-        br_crm.to_excel(writer,'BR')
-        writer.save()
-        print 'BR CRM saved in xlsx format with file name %s'%fielname
+        #writer = pd.ExcelWriter(filename)
+        br_crm.to_excel(filename)
+        #writer.save()
+        print 'BR CRM saved in csv format with file name %s'%filename
     return br_crm
 
 def create_crm(database,filename=None):
@@ -247,6 +242,7 @@ def or_call(crm):
             line['Province']=''
             line['class_code']=''
             line['class_desc']=''
+
             #line['name1']=''
             #line['name2']=''
             if skip == False:
@@ -255,6 +251,9 @@ def or_call(crm):
 
                 if index.ix[i-1] == False and index.ix[i+1]==True:
                     next_line['City']='Or Call:'
+                else:
+                    next_line['City']=''
+
                 try:
                     if index.ix[i+1] == True:
                         skip =True
