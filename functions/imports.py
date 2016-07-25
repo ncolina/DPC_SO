@@ -72,6 +72,8 @@ def save_database(database,filename=None):
 #Specify export = True if an excel export is required, in this case the function returns nothing
 def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr=database[database.acc_type=='RR']
+    rr=rr[rr.list_code=='PB']
+
     rr_crm=pd.DataFrame()
     rr_crm['Areacode']=get_areacode(rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     rr_crm['Phone']=rr.mem_wstd.str.slice(-7)
@@ -108,6 +110,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
 
 def create_government_crm(database,export=False,filename=None,abbr=True):
     go=database[database.acc_type=='GO']
+    go=go[go.list_code=='GO']
+
     go_crm=pd.DataFrame()
     go_crm['Areacode']=get_areacode(go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     go_crm['Phone']=go.mem_wstd.str.slice(-7)
@@ -143,6 +147,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
 
 def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br=database[database.acc_type=='BR']
+    br=br[br.list_code=='PB']
     br_crm=pd.DataFrame()
     br_crm['Areacode']=get_areacode(br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     br_crm['Phone']=br.mem_wstd.str.slice(-7)

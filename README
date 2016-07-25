@@ -27,7 +27,7 @@ possible modes:
 TODO:
 DONE: create main interaction script
 Done! program the "or call" scheme in generating the CRM-
-in progress:full implementation of abbreviation and areacodes
+DONE:full implementation of abbreviation and areacodes
   to do: finish LUT and impement abbreviations
   DONE: areacode implementation but not transcription from pdf
 DONE:partial crm creation based on category RR GO BR
@@ -42,18 +42,17 @@ DONE: update save functions to handle additional output filename argument
 check format of input it see if the input line follows given format otherwise throw exception
 DONE configurable mapping for fixed width file
 configurable crm output
-check and remove complete duplicates from the database
+DONE check and remove complete duplicates from the database
 DONE: export to csv Done db todo: add to commandline interface
 use estate if street name isnt given in making crm based on switch
-if numbers are the same keep most recent in the crm output
-if list code != PB or publish do not output to crm
+IMPLEMENT if numbers are the same keep most recent in the crm output
+DONE : if list code != PB or publish do not output to crm
 output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
            can add class code in database(csv) then filter at yellow page crm output
 product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
             do at crm creation
 output crm file to hdf5
-
-
+MAKE OBJ ORIENTED
 
 
 NOTES:
