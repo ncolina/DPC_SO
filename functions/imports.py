@@ -6,20 +6,17 @@ import csv
 import glob
 import os
 import ConfigParser
-
-with open('config/areacodes') as csvfile:
-    reader= csv.reader(csvfile)
-    codes = dict((rows[0],rows[1]) for rows in reader)
-with open('config/prov_abbreviations') as csvfile:
-    reader= csv.reader(csvfile)
-    prov_abbr = dict((rows[0],rows[1]) for rows in reader)
-with open('config/city_abbreviations') as csvfile:
-    reader= csv.reader(csvfile)
-    city_abbr = dict((rows[0],rows[1]) for rows in reader)
-
+import logging
 
 Config = ConfigParser.ConfigParser()
 Config.read("config/input_format")
+Config.read("config/areacodes")
+Config.read("config/prov_abbreviations")
+Config.read("config/city_abbreviations")
+prov_abbr=ConfigSectionMap('prov_abbreviations')
+city_abbr=ConfigSectionMap('city_abbreviations')
+codes=ConfigSectionMap('areacodes')
+
 def ConfigSectionMap(section):
     dict1 = {}
     options = Config.options(section)
@@ -33,9 +30,6 @@ def ConfigSectionMap(section):
             dict1[option] = None
     return dict1
 
-
-
-
 def get_database(file):
     database=pd.read_hdf(file,'database')
     return  database
@@ -48,10 +42,12 @@ def update_database(update_file,database,bigbang=False):
                    header=None,
                    widths=widths,
                    names=names,
-                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str},
+                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str,'old_wstd':str,'so_date':str},
+                   #error_bad_lines=True,
+                   #dtype='object',
                    index_col=None
                   )
-    update = update.fillna('')
+    #update.fillna('', inplace=True)
 
     update['acc_type']=update['acc_type'].astype('category')
     update['src']=so_file.split('/')[-1]
@@ -77,6 +73,8 @@ def save_database(database,filename=None):
 #Specify export = True if an excel export is required, in this case the function returns nothing
 def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr=database[database.acc_type=='RR']
+    rr=rr[rr.list_code=='PB']
+
     rr_crm=pd.DataFrame()
     rr_crm['Areacode']=get_areacode(rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     rr_crm['Phone']=rr.mem_wstd.str.slice(-7)
@@ -89,8 +87,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm['sam_estate']=rr.sam_estate
     rr_crm['City']=rr.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip())
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
-    rr_crm['class_code']=""
-    rr_crm['class_desc']=""
+    rr_crm['class_code']=None
+    rr_crm['class_desc']=None
     rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x))
     rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x))
     rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x))
@@ -99,20 +97,24 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x))
     rr_crm.City = rr_crm.City.apply(lambda x: titlecase(x))
     rr_crm.Province = rr_crm.Province.apply(lambda x: titlecase(x))
+    fix_duplicate(rr_crm)
+
     #or call may not be necessary here
     rr_crm= or_call(rr_crm)
     if abbr == True:
         apply_abbr(rr_crm)
     if export == True:
-        filename=filename or 'crm_rr_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
-        writer = pd.ExcelWriter(filename)
-        rr_crm.to_excel(writer,'RR')
-        writer.save()
-        print 'RR CRM saved in xlsx format with file name %s'%filename
+        filename=filename or 'crm_rr_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+        #writer = pd.ExcelWriter(filename)
+        rr_crm.to_csv(filename)
+        #writer.save()
+        print 'RR CRM saved in csv format with file name %s'%filename
     return rr_crm
 
 def create_government_crm(database,export=False,filename=None,abbr=True):
     go=database[database.acc_type=='GO']
+    go=go[go.list_code=='PB']
+
     go_crm=pd.DataFrame()
     go_crm['Areacode']=get_areacode(go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     go_crm['Phone']=go.mem_wstd.str.slice(-7)
@@ -135,19 +137,22 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x))
     go_crm.City = go_crm.City.apply(lambda x: titlecase(x))
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
+    fix_duplicate(go_crm)
+
     go_crm= or_call(go_crm)
     if abbr == True:
         apply_abbr(go_crm)
     if export == True:
-        filename = filename or 'crm_go_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
-        writer = pd.ExcelWriter(filename)
-        go_crm.to_excel(writer,'GO')
-        writer.save()
-        print 'GO CRM saved in xlsx format with file name %s'% filename
+        filename = filename or 'crm_go_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+        #writer = pd.ExcelWriter(filename)
+        go_crm.to_csv(filename)
+        #writer.save()
+        print 'GO CRM saved in csv format with file name %s'% filename
     return go_crm
 
 def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br=database[database.acc_type=='BR']
+    br=br[br.list_code=='PB']
     br_crm=pd.DataFrame()
     br_crm['Areacode']=get_areacode(br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     br_crm['Phone']=br.mem_wstd.str.slice(-7)
@@ -170,16 +175,17 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x))
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
+    fix_duplicate(br_crm)
     #place orcall function here since we want LR and Lr to be duplicates
     br_crm= or_call(br_crm)
     if abbr == True:
         br_crm=apply_abbr(br_crm)
     if export == True:
         filename= filename or 'crm_br_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
-        writer = pd.ExcelWriter(filename)
-        br_crm.to_excel(writer,'BR')
-        writer.save()
-        print 'BR CRM saved in xlsx format with file name %s'%fielname
+        #writer = pd.ExcelWriter(filename)
+        br_crm.to_excel(filename)
+        #writer.save()
+        print 'BR CRM saved in csv format with file name %s'%filename
     return br_crm
 
 def create_crm(database,filename=None):
@@ -198,6 +204,12 @@ def create_crm_csv(database,filename=None):
     create_buisness_crm(database).to_csv('br_%s'%filename)
     print 'CRM saved in csv format with file names %s'%filename
 
+def create_yellowpages_crm(database, filename=None): # NOT DONE YET!!!!
+    filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+    create_residential_crm(database).to_csv('rr_%s'%filename)
+    create_government_crm(database).to_csv('go_%s'%filename)
+    create_buisness_crm(database).to_csv('br_%s'%filename)
+    print 'Yellow Pages CRM saved in csv format with file names %s'%filename
 
 def database2xls(database,filename=None):
     filename=filename or 'db_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
@@ -217,7 +229,7 @@ def database2csv(database,filename=None):
 
     print 'Database saved in csv format with file name %s'%filename
 
-def get_areacode(province):
+def get_areacode(province): #needs to be based on both the province (and the city sometimes)
     return province.apply(lambda x : codes.get(x.lower(),None))
 
 def province2abr(arg):
@@ -247,16 +259,20 @@ def or_call(crm):
             line['Province']=''
             line['class_code']=''
             line['class_desc']=''
+
             #line['name1']=''
             #line['name2']=''
             if skip == False:
                 prev_line['Phone']=str(prev_line.Phone)+'/'+str(line.Phone)
-                line['Phone']=np.nan
+                line['Phone']=None
 
                 if index.ix[i-1] == False and index.ix[i+1]==True:
                     next_line['City']='Or Call:'
+                else:
+                    next_line['City']=''
+
                 try:
-                    if index.ix[i+1] == True:
+                    if index.ix[i+1]    == True:
                         skip =True
                 except:
                     pass
@@ -276,3 +292,15 @@ def apply_abbr(crm):
     crm.Province=crm.Province.apply(lambda x : province2abr(x))
     crm.City=crm.City.apply(lambda x : city2abr(x))
     return crm
+
+def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
+    crm.drop_duplicates('Phone',keep='last',inplace=True)
+
+def add_product(crm):
+    product=pd.read_excel('Product_Lookup.xlsx')
+    product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode'}, inplace=True)
+    pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='left')
+
+def add_class_code(database):
+    classes=pd.read_excel('Company_Class.xlsx')
+    pd.merge(database,classes, on=['Areacode','Phone','name1'], how='left')
