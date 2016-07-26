@@ -8,15 +8,6 @@ import os
 import ConfigParser
 import logging
 
-Config = ConfigParser.ConfigParser()
-Config.read("config/input_format")
-Config.read("config/areacodes")
-Config.read("config/prov_abbreviations")
-Config.read("config/city_abbreviations")
-prov_abbr=ConfigSectionMap('prov_abbreviations')
-city_abbr=ConfigSectionMap('city_abbreviations')
-codes=ConfigSectionMap('areacodes')
-
 def ConfigSectionMap(section):
     dict1 = {}
     options = Config.options(section)
@@ -29,6 +20,17 @@ def ConfigSectionMap(section):
             print("exception on %s!" % option)
             dict1[option] = None
     return dict1
+
+
+Config = ConfigParser.ConfigParser()
+Config.read("config/input_format")
+Config.read("config/areacodes")
+Config.read("config/prov_abbreviations")
+Config.read("config/city_abbreviations")
+prov_abbr=ConfigSectionMap('prov_abbreviations')
+city_abbr=ConfigSectionMap('city_abbreviations')
+codes=ConfigSectionMap('areacodes')
+
 
 def get_database(file):
     database=pd.read_hdf(file,'database')
@@ -47,7 +49,7 @@ def update_database(update_file,database,bigbang=False):
                    #dtype='object',
                    index_col=None
                   )
-    #update.fillna('', inplace=True)
+    update.fillna('', inplace=True)
 
     update['acc_type']=update['acc_type'].astype('category')
     update['src']=so_file.split('/')[-1]
@@ -294,22 +296,13 @@ def apply_abbr(crm):
     return crm
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
-<<<<<<< HEAD
     crm.drop_duplicates('Phone',keep='last',inplace=True)
-=======
-    crm.drop_duplicates('Phone',keep='last')
->>>>>>> dev
 
 def add_product(crm):
     product=pd.read_excel('Product_Lookup.xlsx')
     product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode'}, inplace=True)
-<<<<<<< HEAD
     pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='left')
 
 def add_class_code(database):
     classes=pd.read_excel('Company_Class.xlsx')
     pd.merge(database,classes, on=['Areacode','Phone','name1'], how='left')
-=======
-
-    pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='inner')
->>>>>>> dev
