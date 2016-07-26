@@ -294,13 +294,22 @@ def apply_abbr(crm):
     return crm
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
+<<<<<<< HEAD
     crm.drop_duplicates('Phone',keep='last',inplace=True)
+=======
+    crm.drop_duplicates('Phone',keep='last')
+>>>>>>> dev
 
 def add_product(crm):
     product=pd.read_excel('Product_Lookup.xlsx')
     product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode'}, inplace=True)
+<<<<<<< HEAD
     pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='left')
 
 def add_class_code(database):
     classes=pd.read_excel('Company_Class.xlsx')
     pd.merge(database,classes, on=['Areacode','Phone','name1'], how='left')
+=======
+
+    pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='inner')
+>>>>>>> dev
