@@ -30,6 +30,7 @@ Done! program the "or call" scheme in generating the CRM-
 DONE:full implementation of abbreviation and areacodes
   to do: finish LUT and impement abbreviations
   DONE: areacode implementation but not transcription from pdf
+  UPDATE: NEED TO FIND RULES FOR CAVITE LAGUNA and BULACAN
 DONE:partial crm creation based on category RR GO BR
 DONE proper capitalization of business names -> replace capwords function
 error handling/ debugging - random text, no name and number should be logged
@@ -45,11 +46,19 @@ configurable crm output
 DONE check and remove complete duplicates from the database
 DONE: export to csv Done db todo: add to commandline interface
 use estate if street name isnt given in making crm based on switch
+<<<<<<< HEAD
+IMPLEMENT if numbers are the same keep most recent in the crm output DONE
+DONE : if list code != PB or publish do not output to crm
+output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
+           can add class code in database(csv) then filter at yellow page crm output
+DONE:product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
+=======
 IMPLEMENT if numbers are the same keep most recent in the crm output
 DONE : if list code != PB or publish do not output to crm
 output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
            can add class code in database(csv) then filter at yellow page crm output
 product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
+>>>>>>> dev
             do at crm creation
 output crm file to hdf5
 MAKE OBJ ORIENTED

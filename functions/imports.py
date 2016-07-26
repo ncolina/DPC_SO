@@ -8,15 +8,6 @@ import os
 import ConfigParser
 import logging
 
-Config = ConfigParser.ConfigParser()
-Config.read("config/input_format")
-Config.read("config/areacodes")
-Config.read("config/prov_abbreviations")
-Config.read("config/city_abbreviations")
-prov_abbr=ConfigSectionMap('prov_abbreviations')
-city_abbr=ConfigSectionMap('city_abbreviations')
-codes=ConfigSectionMap('areacodes')
-
 def ConfigSectionMap(section):
     dict1 = {}
     options = Config.options(section)
@@ -29,6 +20,17 @@ def ConfigSectionMap(section):
             print("exception on %s!" % option)
             dict1[option] = None
     return dict1
+
+
+Config = ConfigParser.ConfigParser()
+Config.read("config/input_format")
+Config.read("config/areacodes")
+Config.read("config/prov_abbreviations")
+Config.read("config/city_abbreviations")
+prov_abbr=ConfigSectionMap('prov_abbreviations')
+city_abbr=ConfigSectionMap('city_abbreviations')
+codes=ConfigSectionMap('areacodes')
+
 
 def get_database(file):
     database=pd.read_hdf(file,'database')
@@ -47,7 +49,7 @@ def update_database(update_file,database,bigbang=False):
                    #dtype='object',
                    index_col=None
                   )
-    #update.fillna('', inplace=True)
+    update.fillna('', inplace=True)
 
     update['acc_type']=update['acc_type'].astype('category')
     update['src']=so_file.split('/')[-1]
@@ -87,8 +89,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm['sam_estate']=rr.sam_estate
     rr_crm['City']=rr.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip())
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
-    rr_crm['class_code']=""
-    rr_crm['class_desc']=""
+    rr_crm['class_code']=None
+    rr_crm['class_desc']=None
     rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x))
     rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x))
     rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x))
@@ -97,6 +99,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x))
     rr_crm.City = rr_crm.City.apply(lambda x: titlecase(x))
     rr_crm.Province = rr_crm.Province.apply(lambda x: titlecase(x))
+    fix_duplicate(rr_crm)
+
     #or call may not be necessary here
     rr_crm= or_call(rr_crm)
     if abbr == True:
@@ -135,6 +139,8 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x))
     go_crm.City = go_crm.City.apply(lambda x: titlecase(x))
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
+    fix_duplicate(go_crm)
+
     go_crm= or_call(go_crm)
     if abbr == True:
         apply_abbr(go_crm)
@@ -171,6 +177,7 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x))
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
+    fix_duplicate(br_crm)
     #place orcall function here since we want LR and Lr to be duplicates
     br_crm= or_call(br_crm)
     if abbr == True:
@@ -289,10 +296,13 @@ def apply_abbr(crm):
     return crm
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
-    crm.drop_duplicates('Phone',keep='last')
+    crm.drop_duplicates('Phone',keep='last',inplace=True)
 
 def add_product(crm):
     product=pd.read_excel('Product_Lookup.xlsx')
     product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode'}, inplace=True)
+    pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='left')
 
-    pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='inner')
+def add_class_code(database):
+    classes=pd.read_excel('Company_Class.xlsx')
+    pd.merge(database,classes, on=['Areacode','Phone','name1'], how='left')
