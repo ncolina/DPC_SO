@@ -1,7 +1,7 @@
 from functions.imports import *
 import os
 import sys, argparse
-
+import logging
 
 def update_prompt():
     newest = get_newest_db()

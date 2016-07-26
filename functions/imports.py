@@ -6,6 +6,7 @@ import csv
 import glob
 import os
 import ConfigParser
+import logging
 
 Config = ConfigParser.ConfigParser()
 Config.read("config/input_format")
@@ -46,7 +47,7 @@ def update_database(update_file,database,bigbang=False):
                    #dtype='object',
                    index_col=None
                   )
-    update.fillna('', inplace=True)
+    #update.fillna('', inplace=True)
 
     update['acc_type']=update['acc_type'].astype('category')
     update['src']=so_file.split('/')[-1]
@@ -110,7 +111,7 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
 
 def create_government_crm(database,export=False,filename=None,abbr=True):
     go=database[database.acc_type=='GO']
-    go=go[go.list_code=='GO']
+    go=go[go.list_code=='PB']
 
     go_crm=pd.DataFrame()
     go_crm['Areacode']=get_areacode(go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
@@ -198,6 +199,12 @@ def create_crm_csv(database,filename=None):
     create_buisness_crm(database).to_csv('br_%s'%filename)
     print 'CRM saved in csv format with file names %s'%filename
 
+def create_yellowpages_crm(database, filename=None): # NOT DONE YET!!!!
+    filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+    create_residential_crm(database).to_csv('rr_%s'%filename)
+    create_government_crm(database).to_csv('go_%s'%filename)
+    create_buisness_crm(database).to_csv('br_%s'%filename)
+    print 'Yellow Pages CRM saved in csv format with file names %s'%filename
 
 def database2xls(database,filename=None):
     filename=filename or 'db_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
@@ -217,7 +224,7 @@ def database2csv(database,filename=None):
 
     print 'Database saved in csv format with file name %s'%filename
 
-def get_areacode(province):
+def get_areacode(province): #needs to be based on both the province (and the city sometimes)
     return province.apply(lambda x : codes.get(x.lower(),None))
 
 def province2abr(arg):
@@ -252,7 +259,7 @@ def or_call(crm):
             #line['name2']=''
             if skip == False:
                 prev_line['Phone']=str(prev_line.Phone)+'/'+str(line.Phone)
-                line['Phone']=np.nan
+                line['Phone']=None
 
                 if index.ix[i-1] == False and index.ix[i+1]==True:
                     next_line['City']='Or Call:'
@@ -260,7 +267,7 @@ def or_call(crm):
                     next_line['City']=''
 
                 try:
-                    if index.ix[i+1] == True:
+                    if index.ix[i+1]    == True:
                         skip =True
                 except:
                     pass
@@ -280,3 +287,12 @@ def apply_abbr(crm):
     crm.Province=crm.Province.apply(lambda x : province2abr(x))
     crm.City=crm.City.apply(lambda x : city2abr(x))
     return crm
+
+def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
+    crm.drop_duplicates('Phone',keep='last')
+
+def add_product(crm):
+    product=pd.read_excel('Product_Lookup.xlsx')
+    product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode'}, inplace=True)
+
+    pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='inner')
