@@ -24,13 +24,13 @@ def ConfigSectionMap(section):
 
 Config = ConfigParser.ConfigParser()
 Config.read("config/input_format")
-Config.read("config/areacodes")
+#Config.read("config/areacodes") # NOT NEEDED
 Config.read("config/prov_abbreviations")
 Config.read("config/city_abbreviations")
 
 prov_abbr=ConfigSectionMap('prov_abbreviations')
 city_abbr=ConfigSectionMap('city_abbreviations')
-codes=ConfigSectionMap('areacodes')
+#codes=ConfigSectionMap('areacodes') #NOT NEEEDED
 crmout=open('config/crm_format', 'r')
 
 def get_database(file):
@@ -85,9 +85,8 @@ def save_database(database,filename=None):
 def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr=database[database.acc_type=='RR']
     rr=rr[rr.list_code=='PB']
-
     rr_crm=pd.DataFrame()
-    rr_crm['Areacode']=get_areacode(rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
+    rr_crm['Areacode']=rr.mem_wstd.str.slice(0,-7)#get_areacode(rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     rr_crm['Phone']=rr.mem_wstd.str.slice(-7)
     rr_crm['name1']=rr.last_name
     rr_crm['name2']=rr.first_name
@@ -126,9 +125,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
 def create_government_crm(database,export=False,filename=None,abbr=True):
     go=database[database.acc_type=='GO']
     go=go[go.list_code=='PB']
-
     go_crm=pd.DataFrame()
-    go_crm['Areacode']=get_areacode(go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
+    go_crm['Areacode']=go.mem_wstd.str.slice(0,-7)##get_areacode(go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     go_crm['Phone']=go.mem_wstd.str.slice(-7)
     go_crm['name1']=go.last_name
     go_crm['name2']=go.first_name
@@ -141,12 +139,12 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     go_crm['Province']=go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
     go_crm['class_code']=""
     go_crm['class_desc']=""
-    go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x))
-    go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x))
-    go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x))
-    go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x))
-    go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x))
-    go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x))
+    go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
+    go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
+    go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
+    go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
+    go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x) if x.isupper() else x)
+    go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x) if x.isupper() else x)
     go_crm.City = go_crm.City.apply(lambda x: titlecase(x))
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
     fix_duplicate(go_crm)
@@ -166,7 +164,7 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br=database[database.acc_type=='BR']
     br=br[br.list_code=='PB']
     br_crm=pd.DataFrame()
-    br_crm['Areacode']=get_areacode(br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
+    br_crm['Areacode']=br.mem_wstd.str.slice(0,-7)##get_areacode(br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     br_crm['Phone']=br.mem_wstd.str.slice(-7)
     br_crm['name1']=br.last_name
     br_crm['name2']=br.first_name
@@ -179,12 +177,12 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br_crm['Province']=br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
     br_crm['class_code']=""
     br_crm['class_desc']=""
-    br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x))
-    br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x))
-    br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x))
-    br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x))
-    br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x))
-    br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x))
+    br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
+    br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
+    br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
+    br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
+    br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x) if x.isupper() else x)
+    br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x) if x.isupper() else x)
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
     br_crm=add_product(br_crm)
@@ -218,14 +216,14 @@ def create_crm_csv(database,filename=None):
     create_buisness_crm(database).to_csv('br_%s'%filename)
     print 'CRM saved in csv format with file names %s'%filename
 
-def create_yellowpages_crm(database, filename=None): # NOT DONE YET!!!!
+def create_yellowpages_crm(database, filename=None):
     filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
     #rr_crm=create_residential_crm(database).to_csv('rr_%s'%filename)
     #go_crm=create_government_crm(database).to_csv('go_%s'%filename)
-    br_crm=create_buisness_crm(database).to_csv('br_%s'%filename)
+    br_crm=create_buisness_crm(database)
     #rr_crm=rr_crm[rr_crm.notnull]
     #go_crm=go_crm[go_crm.notnull]
-    br_crm=br_crm[br_crm.notnull]
+    br_crm=br_crm[br_crm.class_code.notnull]
     #rr_crm.to_csv('rr_%s'%filename)
     #go_crm.to_csv('go_%s'%filename)
     br_crm.to_csv('br_%s'%filename)
@@ -249,7 +247,7 @@ def database2csv(database,filename=None):
 
     print 'Database saved in csv format with file name %s'%filename
 
-def get_areacode(province): #needs to be based on both the province (and the city sometimes)
+def get_areacode(province): ###NOT NEEDED
     return province.apply(lambda x : codes.get(x.lower(),None))
 
 def province2abr(arg):
@@ -322,6 +320,7 @@ def apply_abbr(crm):
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
     crm.drop_duplicates('Phone',keep='last',inplace=True)
+    #make copy to change case and strip punctuation then check for duplicates. Use this as an index to remove from final crm output
 
 def add_product(crm):
     product=pd.read_excel('Product_Lookup.xlsx')
