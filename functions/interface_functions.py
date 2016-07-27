@@ -26,23 +26,28 @@ def crm_prompt():
         if os.path.isfile(dbfile) == True:
             break
         print 'That file does not exist.'
-    choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
+    yellowpages=raw_input('YellowPages? Y/N [Default:N] ') or 'N'
     ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]: ') or 'Y'
     database=get_database(dbfile)
     if ab_choice == 'Y' or ab_choice =='y': #if abbreviations are not desired then it should be said by having any othe input except Y/y
         abbr=True
     else:
         abbr = False
-    if choice == 'ALL':
-        create_crm_csv(database)
-    elif choice == 'GO':
-        create_government_crm(database, export=True,abbr=abbr)
-    elif choice == 'BR':
-        create_buisness_crm(database, export=True,abbr=abbr)
-    elif choice == 'RR':
-        create_residential_crm(database, export=True,abbr=abbr)
-    else:
-        print "Invalid input!"
+    if yellowpages == 'N' or yellowpages =='N':
+        choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
+        if choice == 'ALL':
+            create_crm_csv(database)
+        elif choice == 'GO':
+            create_government_crm(database, export=True,abbr=abbr)
+        elif choice == 'BR':
+            create_buisness_crm(database, export=True,abbr=abbr)
+        elif choice == 'RR':
+            create_residential_crm(database, export=True,abbr=abbr)
+        else:
+            print "Invalid input!"
+    elif yellowpages=='y' or yellowpages=='Y':
+        create_yellowpages_crm(database)
+
 
 def export_prompt():
     newest = get_newest_db()

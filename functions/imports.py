@@ -27,10 +27,11 @@ Config.read("config/input_format")
 Config.read("config/areacodes")
 Config.read("config/prov_abbreviations")
 Config.read("config/city_abbreviations")
+
 prov_abbr=ConfigSectionMap('prov_abbreviations')
 city_abbr=ConfigSectionMap('city_abbreviations')
 codes=ConfigSectionMap('areacodes')
-
+crmout=open('config/crm_format', 'r')
 
 def get_database(file):
     database=pd.read_hdf(file,'database')
@@ -55,12 +56,20 @@ def update_database(update_file,database,bigbang=False):
     update['src']=so_file.split('/')[-1]
     update['so_rangedate']=time.strftime("%Y-%m-%d")
     update['user']= os.getlogin()
+    udpate=add_class_code(update)
     if bigbang == True:
         update.sort_values(by='last_name',inplace=True)
         update.drop_duplicates(names,inplace=True)
         update.reset_index(drop=True,inplace=True)
         return update
-    database.append(update)
+    OP=update[update.so_type == 'OP']
+    IN=update[update.so_type == 'IN']
+    IR=update[update.so_type == 'IR']
+    CL=update[update.so_type == 'CL']
+    database.loc(database.account_no.isin(OP.account_no), 'list_code')='CO'
+    database.loc(database.account_no.isin(IR.account_no), 'list_code')='PB'
+    database[database.account_no.isin(CL.account_no)].update(update)
+    database.append(IN)
     database.sort_values(by='last_name',inplace=True)
     database.drop_duplicates(names,inplace=True)
     database.reset_index(drop=True,inplace=True)
@@ -91,16 +100,17 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
     rr_crm['class_code']=None
     rr_crm['class_desc']=None
-    rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x))
-    rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x))
-    rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x))
-    rr_crm.SAM_STNAME = rr_crm.SAM_STNAME.apply(lambda x: titlecase(x))
-    rr_crm.SAM_STSUBT = rr_crm.SAM_STSUBT.apply(lambda x: titlecase(x))
-    rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x))
+    rr_crm=add_product(rr_crm)
+    fix_duplicate(rr_crm)
+    #rr_crm.loc(rr_crm.SAM_STNAME=='' and ,)
+    rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
+    rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
+    rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
+    rr_crm.SAM_STNAME = rr_crm.SAM_STNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
+    rr_crm.SAM_STSUBT = rr_crm.SAM_STSUBT.apply(lambda x: titlecase(x) if x.isupper() else x)
+    rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x) if x.isupper() else x)
     rr_crm.City = rr_crm.City.apply(lambda x: titlecase(x))
     rr_crm.Province = rr_crm.Province.apply(lambda x: titlecase(x))
-    fix_duplicate(rr_crm)
-
     #or call may not be necessary here
     rr_crm= or_call(rr_crm)
     if abbr == True:
@@ -140,7 +150,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     go_crm.City = go_crm.City.apply(lambda x: titlecase(x))
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
     fix_duplicate(go_crm)
-
+    go_crm=add_product(go_crm)
     go_crm= or_call(go_crm)
     if abbr == True:
         apply_abbr(go_crm)
@@ -177,7 +187,9 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x))
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
+    br_crm=add_product(br_crm)
     fix_duplicate(br_crm)
+    br_crm=add_product(br_crm)
     #place orcall function here since we want LR and Lr to be duplicates
     br_crm= or_call(br_crm)
     if abbr == True:
@@ -208,9 +220,15 @@ def create_crm_csv(database,filename=None):
 
 def create_yellowpages_crm(database, filename=None): # NOT DONE YET!!!!
     filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
-    create_residential_crm(database).to_csv('rr_%s'%filename)
-    create_government_crm(database).to_csv('go_%s'%filename)
-    create_buisness_crm(database).to_csv('br_%s'%filename)
+    #rr_crm=create_residential_crm(database).to_csv('rr_%s'%filename)
+    #go_crm=create_government_crm(database).to_csv('go_%s'%filename)
+    br_crm=create_buisness_crm(database).to_csv('br_%s'%filename)
+    #rr_crm=rr_crm[rr_crm.notnull]
+    #go_crm=go_crm[go_crm.notnull]
+    br_crm=br_crm[br_crm.notnull]
+    #rr_crm.to_csv('rr_%s'%filename)
+    #go_crm.to_csv('go_%s'%filename)
+    br_crm.to_csv('br_%s'%filename)
     print 'Yellow Pages CRM saved in csv format with file names %s'%filename
 
 def database2xls(database,filename=None):
@@ -243,7 +261,14 @@ def city2abr(arg):
 
 def or_call(crm):
     crm.reset_index(drop=True,inplace=True)
-    index=crm.duplicated(['name1','name2','City','Province','SAM_BLDNAME','SAM_STNAME'])
+    tmp=crm
+    tmp.name1=tmp.name1.str.lower()
+    tmp.name2=tmp.name2.str.lower()
+    tmp.City=tmp.City.str.lower()
+    tmp.Province=tmp.Province.str.lower()
+    tmp.SAM_BLDNAME=tmp.SAM_BLDNAME.str.lower()
+    tmp.SAM_STNAME=tmp.SAM_STNAME.str.lower()
+    index=tmp.duplicated(['name1','name2','City','Province','SAM_BLDNAME','SAM_STNAME'])
     skip=False
     for i in xrange(len(index)):
         if index.iloc[i] == True:
@@ -301,8 +326,19 @@ def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repe
 def add_product(crm):
     product=pd.read_excel('Product_Lookup.xlsx')
     product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode'}, inplace=True)
-    pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='left')
+    return pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='left')
 
 def add_class_code(database):
     classes=pd.read_excel('Company_Class.xlsx')
-    pd.merge(database,classes, on=['Areacode','Phone','name1'], how='left')
+    classes_up=classes.name1.str.upper()
+        #remove columns not used to find classes here
+    df = df.drop(['name2','Product'], 1)
+    database_up=database.name1.str.upper(inplace=True)
+    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','name1'], how='left')
+    database_coded.name1=database.name1
+    return database_coded
+
+def format_output(crm): #NOT DONE
+    out=pd.DataFrame
+        for line in crmout:
+            out['%s'%field]= crm['%s'%field]

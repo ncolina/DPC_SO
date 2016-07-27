@@ -33,34 +33,32 @@ DONE:full implementation of abbreviation and areacodes
   UPDATE: NEED TO FIND RULES FOR CAVITE LAGUNA and BULACAN
 DONE:partial crm creation based on category RR GO BR
 DONE proper capitalization of business names -> replace capwords function
-error handling/ debugging - random text, no name and number should be logged
+error handling/ debugging - random text, no name and number should be logged #try typecasting per line excepte log:error- line
 DONE file naming of database
 DONEAdd user doing editing to the db
-BUGGY:Commandline interface
+UPDATE:Commandline interface
   -switches for mode, input, output,
 Logging to /var/log/DPCSO inclding how the program was run, who ran it, and any exceptions
 DONE: update save functions to handle additional output filename argument
-check format of input it see if the input line follows given format otherwise throw exception
+REPEATcheck format of input it see if the input line follows given format otherwise throw exception
 DONE configurable mapping for fixed width file
 configurable crm output
 DONE check and remove complete duplicates from the database
 DONE: export to csv Done db todo: add to commandline interface
 use estate if street name isnt given in making crm based on switch
-<<<<<<< HEAD
 IMPLEMENT if numbers are the same keep most recent in the crm output DONE
 DONE : if list code != PB or publish do not output to crm
-output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
+TESTING:output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
            can add class code in database(csv) then filter at yellow page crm output
 DONE:product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
-=======
-IMPLEMENT if numbers are the same keep most recent in the crm output
+TESTING if numbers are the same keep most recent in the crm output
 DONE : if list code != PB or publish do not output to crm
-output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
+TESTING:output to yellow pages- match with yellow pages file and add class code correcponding to  areacode, number and name1
            can add class code in database(csv) then filter at yellow page crm output
-product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
->>>>>>> dev
+TESTING:product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
             do at crm creation
 output crm file to hdf5
+Update with regard to so_type
 MAKE OBJ ORIENTED
 
 
