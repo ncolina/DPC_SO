@@ -1,11 +1,9 @@
 from functions.imports import *
 import os
 import sys, argparse
-<<<<<<< HEAD
 import logging
-=======
 
->>>>>>> origin/master
+
 
 def update_prompt():
     newest = get_newest_db()
@@ -31,22 +29,16 @@ def crm_prompt():
             break
         print 'That file does not exist.'
     choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
-<<<<<<< HEAD
     ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]: ') or 'Y'
-=======
-    ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]') or 'Y'
->>>>>>> origin/master
+
     database=get_database(dbfile)
     if ab_choice == 'Y' or ab_choice =='y': #if abbreviations are not desired then it should be said by having any othe input except Y/y
         abbr=True
     else:
         abbr = False
     if choice == 'ALL':
-<<<<<<< HEAD
         create_crm_csv(database)
-=======
-        create_crm(database)
->>>>>>> origin/master
+
     elif choice == 'GO':
         create_government_crm(database, export=True,abbr=abbr)
     elif choice == 'BR':
@@ -65,11 +57,8 @@ def export_prompt():
             break
         print 'That file does not exist.'
     database=get_database(dbfile)
-<<<<<<< HEAD
     database2csv(database)
-=======
-    database2xls(database)
->>>>>>> origin/master
+
 
 def big_bang():
     while True:

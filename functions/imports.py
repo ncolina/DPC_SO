@@ -8,18 +8,10 @@ import os
 import ConfigParser
 import logging
 
-<<<<<<< HEAD
-=======
-Config = ConfigParser.ConfigParser()
-Config.read("config/input_format")
-Config.read("config/areacodes")
-Config.read("config/prov_abbreviations")
-Config.read("config/city_abbreviations")
-prov_abbr=ConfigSectionMap('prov_abbreviations')
-city_abbr=ConfigSectionMap('city_abbreviations')
-codes=ConfigSectionMap('areacodes')
 
->>>>>>> origin/master
+
+
+
 def ConfigSectionMap(section):
     dict1 = {}
     options = Config.options(section)
@@ -32,9 +24,6 @@ def ConfigSectionMap(section):
             print("exception on %s!" % option)
             dict1[option] = None
     return dict1
-
-<<<<<<< HEAD
-
 Config = ConfigParser.ConfigParser()
 Config.read("config/input_format")
 Config.read("config/areacodes")
@@ -44,9 +33,6 @@ prov_abbr=ConfigSectionMap('prov_abbreviations')
 city_abbr=ConfigSectionMap('city_abbreviations')
 codes=ConfigSectionMap('areacodes')
 
-
-=======
->>>>>>> origin/master
 def get_database(file):
     database=pd.read_hdf(file,'database')
     return  database
@@ -64,11 +50,8 @@ def update_database(update_file,database,bigbang=False):
                    #dtype='object',
                    index_col=None
                   )
-<<<<<<< HEAD
     update.fillna('', inplace=True)
-=======
-    #update.fillna('', inplace=True)
->>>>>>> origin/master
+
 
     update['acc_type']=update['acc_type'].astype('category')
     update['src']=so_file.split('/')[-1]
