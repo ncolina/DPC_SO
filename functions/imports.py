@@ -59,6 +59,7 @@ def update_database(update_file,database,bigbang=False):
 
 
     update['acc_type']=update['acc_type'].astype('category')
+    update['class_code']=None
     update['src']=so_file.split('/')[-1]
     update['so_rangedate']=time.strftime("%Y-%m-%d")
     update['user']= os.getlogin()
@@ -73,8 +74,8 @@ def update_database(update_file,database,bigbang=False):
     IN=update[update.so_type == 'IN']
     IR=update[update.so_type == 'IR']
     CL=update[update.so_type == 'CL']
-    database.loc(database.account_no.isin(OP.account_no), 'list_code')='CO'
-    database.loc(database.account_no.isin(IR.account_no), 'list_code')='PB'
+    database.loc[database.account_no.isin(OP.account_no), 'list_code']='CO'
+    database.loc[database.account_no.isin(IR.account_no), 'list_code']='PB'
     database[database.account_no.isin(CL.account_no)].update(update)
     database.append(IN)
 
@@ -106,7 +107,6 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm['sam_estate']=rr.sam_estate
     rr_crm['City']=rr.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip())
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
-<<<<<<< HEAD
     rr_crm['class_code']=None
     rr_crm['class_desc']=None
     rr_crm=add_product(rr_crm)
@@ -121,6 +121,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm.City = rr_crm.City.apply(lambda x: titlecase(x))
     rr_crm.Province = rr_crm.Province.apply(lambda x: titlecase(x))
     #or call may not be necessary here
+    fix_duplicate(rr_crm)
+    rr_crm=add_product(rr_crm,'RR')
     rr_crm= or_call(rr_crm)
     if abbr == True:
         apply_abbr(rr_crm)
@@ -149,7 +151,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     go_crm['City']=go.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip())
     go_crm['Province']=go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
     go_crm['class_code']=""
-    go_crm['class_desc']=""
+#    go_crm['acc_type']='GO'
     go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
     go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
     go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
@@ -159,7 +161,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     go_crm.City = go_crm.City.apply(lambda x: titlecase(x))
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
     fix_duplicate(go_crm)
-    go_crm=add_product(go_crm)
+    go_crm=add_product(go_crm,'GO')
     go_crm= or_call(go_crm)
     if abbr == True:
         apply_abbr(go_crm)
@@ -188,7 +190,7 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br_crm['City']=br.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip())
     br_crm['Province']=br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
     br_crm['class_code']=""
-    br_crm['class_desc']=""
+#    br_crm['acc_type']='BR'
     br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
     br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
     br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
@@ -197,9 +199,8 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x) if x.isupper() else x)
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
-    br_crm=add_product(br_crm)
     fix_duplicate(br_crm)
-    br_crm=add_product(br_crm)
+    br_crm=add_product(br_crm,'BR')
     #place orcall function here since we want LR and Lr to be duplicates
     br_crm= or_call(br_crm)
     if abbr == True:
@@ -230,13 +231,13 @@ def create_crm_csv(database,filename=None):
     print 'CRM saved in csv format with file names %s'%filename
 
 def create_yellowpages_crm(database, filename=None):
-    filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+    filename=filename or'yp_crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
     #rr_crm=create_residential_crm(database).to_csv('rr_%s'%filename)
     #go_crm=create_government_crm(database).to_csv('go_%s'%filename)
     br_crm=create_buisness_crm(database)
     #rr_crm=rr_crm[rr_crm.notnull]
     #go_crm=go_crm[go_crm.notnull]
-    br_crm=br_crm[br_crm.class_code.notnull]
+    br_crm=br_crm[br_crm.class_code.notnull()]
     #rr_crm.to_csv('rr_%s'%filename)
     #go_crm.to_csv('go_%s'%filename)
     br_crm.to_csv('br_%s'%filename)
@@ -273,7 +274,7 @@ def city2abr(arg):
 
 def or_call(crm):
     crm.reset_index(drop=True,inplace=True)
-    tmp=crm
+    tmp=crm.copy()
     tmp.name1=tmp.name1.str.lower()
     tmp.name2=tmp.name2.str.lower()
     tmp.City=tmp.City.str.lower()
@@ -303,8 +304,7 @@ def or_call(crm):
             #line['name2']=''
             if skip == False:
                 prev_line['Phone']=str(prev_line.Phone)+'/'+str(line.Phone)
-                line['Phone']=None
-
+                crm.Phone.iloc[i]=None
                 if index.ix[i-1] == False and index.ix[i+1]==True:
                     next_line['City']='Or Call:'
                 else:
@@ -312,7 +312,6 @@ def or_call(crm):
 
                 try:
                     if index.ix[i+1] == True:
-
                         skip =True
                 except:
                     pass
@@ -337,22 +336,26 @@ def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repe
     crm.drop_duplicates('Phone',keep='last',inplace=True)
     #make copy to change case and strip punctuation then check for duplicates. Use this as an index to remove from final crm output
 
-def add_product(crm):
+def add_product(crm,acc_type='BR'):
     product=pd.read_excel('Product_Lookup.xlsx')
+    product=product[product.acc_type == acc_type]
     product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode'}, inplace=True)
-    return pd.merge(crm,product, on=['Province','acc_type','Areacode'], how='left')
+    return pd.merge(crm,product, on=['Province','Areacode'], how='left')
 
 def add_class_code(database):
     classes=pd.read_excel('Company_Class.xlsx')
-    classes_up=classes.name1.str.upper()
+    classes.rename(columns={'name1': 'last_name', 'name2': 'first_name'}, inplace=True)
+    classes_up=classes.copy()
+    classes_up.last_name=classes_up.last_name.str.upper()
         #remove columns not used to find classes here
-    df = df.drop(['name2','Product'], 1)
-    database_up=database.name1.str.upper(inplace=True)
-    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','name1'], how='left')
-    database_coded.name1=database.name1
+    classes_up = classes_up.drop(['Areacode','Phone','first_name','Product'], 1)
+    database_up=database.copy()
+    database_up.last_name=database_up.last_name.str.upper()
+    database_coded=pd.merge(database_up,classes_up, on=['last_name'], how='left')
+    database_coded.last_name=database.last_name
     return database_coded
 
 def format_output(crm): #NOT DONE
     out=pd.DataFrame
-        for line in crmout:
-            out['%s'%field]= crm['%s'%field]
+    for line in crmout:
+        out['%s'%field]= crm['%s'%field]
