@@ -8,6 +8,9 @@ import os
 import ConfigParser
 import logging
 
+
+
+
 def ConfigSectionMap(section):
     dict1 = {}
     options = Config.options(section)
@@ -33,6 +36,8 @@ city_abbr=ConfigSectionMap('city_abbreviations')
 #codes=ConfigSectionMap('areacodes') #NOT NEEEDED
 crmout=open('config/crm_format', 'r')
 
+
+
 def get_database(file):
     database=pd.read_hdf(file,'database')
     return  database
@@ -52,11 +57,13 @@ def update_database(update_file,database,bigbang=False):
                   )
     update.fillna('', inplace=True)
 
+
     update['acc_type']=update['acc_type'].astype('category')
     update['src']=so_file.split('/')[-1]
     update['so_rangedate']=time.strftime("%Y-%m-%d")
     update['user']= os.getlogin()
     udpate=add_class_code(update)
+
     if bigbang == True:
         update.sort_values(by='last_name',inplace=True)
         update.drop_duplicates(names,inplace=True)
@@ -70,6 +77,7 @@ def update_database(update_file,database,bigbang=False):
     database.loc(database.account_no.isin(IR.account_no), 'list_code')='PB'
     database[database.account_no.isin(CL.account_no)].update(update)
     database.append(IN)
+
     database.sort_values(by='last_name',inplace=True)
     database.drop_duplicates(names,inplace=True)
     database.reset_index(drop=True,inplace=True)
@@ -87,6 +95,7 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr=rr[rr.list_code=='PB']
     rr_crm=pd.DataFrame()
     rr_crm['Areacode']=rr.mem_wstd.str.slice(0,-7)#get_areacode(rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
+
     rr_crm['Phone']=rr.mem_wstd.str.slice(-7)
     rr_crm['name1']=rr.last_name
     rr_crm['name2']=rr.first_name
@@ -97,6 +106,7 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm['sam_estate']=rr.sam_estate
     rr_crm['City']=rr.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip())
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip())
+<<<<<<< HEAD
     rr_crm['class_code']=None
     rr_crm['class_desc']=None
     rr_crm=add_product(rr_crm)
@@ -120,6 +130,7 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
         rr_crm.to_csv(filename)
         #writer.save()
         print 'RR CRM saved in csv format with file name %s'%filename
+
     return rr_crm
 
 def create_government_crm(database,export=False,filename=None,abbr=True):
@@ -158,6 +169,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
         go_crm.to_csv(filename)
         #writer.save()
         print 'GO CRM saved in csv format with file name %s'% filename
+
     return go_crm
 
 def create_buisness_crm(database,export=False,filename=None,abbr=True):
@@ -193,11 +205,12 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     if abbr == True:
         br_crm=apply_abbr(br_crm)
     if export == True:
-        filename= filename or 'crm_br_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
+        filename= filename or 'crm_br_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
         #writer = pd.ExcelWriter(filename)
-        br_crm.to_excel(filename)
+        br_crm.to_csv(filename)
         #writer.save()
         print 'BR CRM saved in csv format with file name %s'%filename
+
     return br_crm
 
 def create_crm(database,filename=None):
@@ -228,6 +241,7 @@ def create_yellowpages_crm(database, filename=None):
     #go_crm.to_csv('go_%s'%filename)
     br_crm.to_csv('br_%s'%filename)
     print 'Yellow Pages CRM saved in csv format with file names %s'%filename
+
 
 def database2xls(database,filename=None):
     filename=filename or 'db_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
@@ -297,7 +311,8 @@ def or_call(crm):
                     next_line['City']=''
 
                 try:
-                    if index.ix[i+1]    == True:
+                    if index.ix[i+1] == True:
+
                         skip =True
                 except:
                     pass

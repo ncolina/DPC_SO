@@ -6,8 +6,11 @@ Package Reqirements:
 -pandas
 -numpy
 -glob
+<<<<<<< HEAD
 -pytables
 
+=======
+>>>>>>> origin/dev
 
 TO run the script interactively:
 python main.py
@@ -27,6 +30,7 @@ possible modes:
 TODO:
 DONE: create main interaction script
 Done! program the "or call" scheme in generating the CRM-
+<<<<<<< HEAD
 DONE:full implementation of abbreviation and areacodes
   to do: finish LUT and impement abbreviations
   DONE: areacode implementation but not transcription from pdf
@@ -63,6 +67,28 @@ MAKE OBJ ORIENTED
 
 note to self:
 comaprison of similar can be done by stripping punctiation
+=======
+in progress:full implementation of abbreviation and areacodes
+  to do: finish LUT and impement abbreviations
+  DONE: areacode implementation but not transcription from pdf
+DONE:partial crm creation based on category RR GO BR
+DONE proper capitalization of business names -> replace capwords function
+error handling/ debugging - random text, no name and number should be logged
+DONE file naming of database
+DONEAdd user doing editing to the db
+BUGGY:Commandline interface
+  -switches for mode, input, output,
+Logging to /var/log/DPCSO inclding how the program was run, who ran it, and any exceptions
+DONE: update save functions to handle additional output filename argument
+check format of input it see if the input line follows given format otherwise throw exception
+DONE configurable mapping for fixed width file
+configurable crm output
+check and remove complete duplicates from the database
+DONE: export to csv Done db todo: add to commandline interface
+use estate if street name isnt given in making crm based on switch
+Unify the config files
+
+>>>>>>> origin/dev
 
 NOTES:
 formatting of config files:
