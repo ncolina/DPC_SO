@@ -58,7 +58,7 @@ TESTING:output to yellow pages- match with yellow pages file and add class code 
 TESTING:product field will come from LUT(csv) such that province areacode and type are matched - everything has a product
             do at crm creation
 output crm file to hdf5
-DONE Update with regard to so_type
+DONE  Update with regard to so_type
 MAKE OBJ ORIENTED
 
 note to self:
