@@ -1,4 +1,5 @@
 [areacodes]
+<<<<<<< HEAD
 bulacan:44
 pampanga:45
 benguet:74
@@ -120,6 +121,8 @@ bohol:38
 zamboanga:62
 ncr:02
 =======
+=======
+>>>>>>> origin/master
 bulacan,44
 pampanga,45
 benguet,74

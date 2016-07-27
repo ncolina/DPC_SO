@@ -1,5 +1,6 @@
 [city_abbreviations]
 <<<<<<< HEAD
+<<<<<<< HEAD
 kalookan city:KC
 las pinas:LP
 makati:Mkti
@@ -35,6 +36,8 @@ subic bay freeport zone:SBFZ
 san fernando la union:SFU
 san fernando pampanga:SFP
 =======
+=======
+>>>>>>> origin/master
 kalookan city,KC
 las pinas,LP
 makati,Mkti
