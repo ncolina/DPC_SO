@@ -9,16 +9,19 @@ def update_prompt():
     while True:
         dbfile=raw_input('What database would you like to update? Input relative path. (default: %s) ' % newest) or newest
         if os.path.isfile(dbfile) == True:
-            print 'That file does not exist.'
             break
+        print 'That file does not exist.'
     while True:
         update=raw_input('What file will you use to update the database? Input relative path: ')
         if os.path.isfile(update) == True:
-            print 'That file does not exist.'
             break
+        print 'That file does not exist.'
+
     database=get_database(dbfile)
     database=update_database(update,database)
     save_database(database)
+    logging.info('%s has been updated',dbfile)
+
 
 def crm_prompt():
     newest = get_newest_db()
@@ -34,10 +37,12 @@ def crm_prompt():
         abbr=True
     else:
         abbr = False
-    if yellowpages == 'N' or yellowpages =='N':
+    if yellowpages=='y' or yellowpages=='Y':
+        create_yellowpages_crm(database)
+    else:# yellowpages == 'N' or yellowpages =='n':
         choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
         if choice == 'ALL':
-            create_crm_csv(database)
+            create_crm_csv(database, abbr=abbr)
         elif choice == 'GO':
             create_government_crm(database, export=True,abbr=abbr)
         elif choice == 'BR':
@@ -46,8 +51,6 @@ def crm_prompt():
             create_residential_crm(database, export=True,abbr=abbr)
         else:
             print "Invalid input!"
-    elif yellowpages=='y' or yellowpages=='Y':
-        create_yellowpages_crm(database)
 
 
 def export_prompt():
@@ -60,6 +63,7 @@ def export_prompt():
         print 'That file does not exist.'
     database=get_database(dbfile)
     database2csv(database)
+    logging.info('Database has been exported as a csv from %s', dbfile)
 
 
 def big_bang():
@@ -70,6 +74,8 @@ def big_bang():
         print 'That file does not exist.'
     database=update_database(update,None,bigbang=True)
     save_database(database)
+    logging.info('Database has been created from %s  ', update)
+
 
 def interactive():
     while True:
