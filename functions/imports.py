@@ -8,6 +8,9 @@ import os
 import ConfigParser
 import logging
 pd.set_option('display.max_rows', None)
+import warnings
+warnings.filterwarnings('ignore',category=pd.io.pytables.PerformanceWarning)
+from difflib import SequenceMatcher
 
 def ConfigSectionMap(section):
     dict1 = {}
@@ -59,11 +62,13 @@ def update_database(update_file,database,bigbang=False):
 
 
     update['acc_type']=update['acc_type'].astype('category')
-    update['class_code']=''
+    #update['class_code']=''
+    update=add_class_code(update)
+    update['class_code']=update['class_code'].astype('str')
+
     update['src']=so_file.split('/')[-1]
     update['so_rangedate']=time.strftime("%Y-%m-%d")
     update['user']= os.getlogin()
-    udpate=add_class_code(update)
 
     if bigbang == True:
         update.sort_values(by='last_name',inplace=True)
@@ -76,14 +81,24 @@ def update_database(update_file,database,bigbang=False):
     CL=update[update.so_type == 'CL']
     NONE=update[update.so_type == '']
     database.loc[database.account_no.isin(OP.account_no), 'list_code']='CO'
+    database.loc[database.account_no.isin(OP.account_no), 'src']=so_file.split('/')[-1]
+    database.loc[database.account_no.isin(OP.account_no), 'so_rangedate']=time.strftime("%Y-%m-%d")
+    database.loc[database.account_no.isin(OP.account_no), 'user']=os.getlogin()
+
     database.loc[database.account_no.isin(IR.account_no), 'list_code']='PB'
+    database.loc[database.account_no.isin(IR.account_no), 'src']=so_file.split('/')[-1]
+    database.loc[database.account_no.isin(IR.account_no), 'so_rangedate']=time.strftime("%Y-%m-%d")
+    database.loc[database.account_no.isin(IR.account_no), 'user']=os.getlogin()
+
     database[database.account_no.isin(CL.account_no)].update(update)
     database=database.append(IN)
+    if len(NONE) > 0:
+        to_fwf(NONE.drop(['class_code','src','so_rangedate','user']),'no_sotype_%s.txt' % time.strftime("%Y-%m-%d"))
     logging.info("%i entries have been added to the database", len(IN.index))
     logging.info("%i entries have been updated in the database", sum(database.account_no.isin(CL.account_no)))
     logging.info("%i entries have been made PB", sum(database.account_no.isin(IR.account_no)))
     logging.info("%i entries have been made CO",sum(database.account_no.isin(OP.account_no)))
-    logging.info('%i lines had no so_type thus nothing was done with them',len(NONE.index) )
+    logging.info('%i lines had no so_type and have been written for updating',len(NONE.index) )
     logging.debug('the following entries have been added to the database')
     logging.debug(IN.last_name)
     logging.debug('The following have been updated')
@@ -92,7 +107,7 @@ def update_database(update_file,database,bigbang=False):
     logging.debug(database[database.account_no.isin(IR.account_no)].last_name)
     logging.debug('The following have been made CO')
     logging.debug(database[database.account_no.isin(OP.account_no)].last_name)
-    logging.debug('The following lines have no so_type ')
+    logging.debug('The following lines have no so_type and have been written for updating')
     logging.debug(NONE.last_name)
 
     database.sort_values(by='last_name',inplace=True)
@@ -247,8 +262,9 @@ def create_crm_csv(database,filename=None,abbr=True):
 
 def create_yellowpages_crm(database, filename=None):
     filename=filename or'yp_crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
+    database.class_code=database.class_code.replace('', np.nan)
+    database=database[database.class_code.notnull()]
     br_crm=create_buisness_crm(database)
-    br_crm=br_crm[br_crm.class_code.notnull()]
     br_crm.to_csv('br_%s'%filename)
     logging.info('Yellow Pages CRM saved in csv format with file names %s',filename)
 
@@ -351,13 +367,24 @@ def add_class_code(database):
     classes_up=classes.copy()
     classes_up.last_name=classes_up.last_name.str.upper()
     classes_up.first_name=classes_up.first_name.str.upper()
-        #remove columns not used to find classes here
-    classes_up = classes_up.drop(['Areacode','Phone','Product'], 1)
+    classes_up.fillna(value='', inplace=True)
+    classes_up.Phone=classes_up.Phone.astype('int64')
+    classes_up.Areacode=classes_up.Areacode.astype('int64')
+
+#classes_up.class_code=classes_up.class_code.astype('int64')
+    #classes_up = classes_up.drop(['Areacode','Product'], 1)
     database_up=database.copy()
     database_up.last_name=database_up.last_name.str.upper()
     database_up.first_name=database_up.first_name.str.upper()
-    database_coded=pd.merge(database_up,classes_up, on=['last_name','first_name'], how='left')
+#database_up.update(classes_up)
+    database_up['Phone']=database_up.mem_wstd.str.slice(-7).astype('int64')
+    database_up['Areacode']=database_up.mem_wstd.str.slice(0,-7).astype('int64')
+    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name'], how='left')
     database_coded.last_name=database.last_name
+    database_coded.first_name=database.first_name
+    database_coded = database_coded.drop(['Phone','Areacode'], 1)
+    database_coded.fillna(value='', inplace=True)
+
     return database_coded
 
 def format_output(crm): #NOT DONE
@@ -365,4 +392,23 @@ def format_output(crm): #NOT DONE
     for line in crmout:
         out['%s'%field]= crm['%s'%field]
 
-#def similar_names():
+def find_similar_names(db,probability=0.6):
+    prev_last='sda sdfasdfas'
+    prev_first='srydfas dfasdfs'
+    similar=[]
+    for index in xrange(len(db)):
+        if (probability < SequenceMatcher(None,db.iloc[index].last_name.upper(),prev_last).ratio() < 1) and ( probability < SequenceMatcher(None,db.iloc[index].first_name.upper(),prev_first).ratio()):
+            similar.append(db.iloc[index-1].values)
+            similar.append(db.iloc[index].values)
+        prev_first=db.iloc[index].first_name.upper()
+        prev_last=db.iloc[index].last_name.upper()
+    similardb=pd.DataFrame(similar)
+    return similardb.drop_duplicates()
+#def find_exceptions():
+
+
+def to_fwf(db,filename):
+    formats=[]
+    for field in Config.options('input_format'):
+        formats.append('%-'+str(Config.get('input_format',field)) +'s')
+    np.savetxt(filename, db.values, fmt=formats, delimiter='')

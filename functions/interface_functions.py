@@ -76,10 +76,29 @@ def big_bang():
     save_database(database)
     logging.info('Database has been created from %s  ', update)
 
+def similar():
+    newest = get_newest_db()
+
+    while True:
+        dbfile=raw_input('What database will be looked at for similar names? Input relative path: [Default: %s]' % newest) or newest
+        if os.path.isfile(dbfile) == True:
+            break
+        print 'That file does not exist.'
+    probability=float(raw_input('Similarity probability [Default: 0.6]')or 0.6)
+    filename='similar_%s'%time.strftime('%Y-%m-%d-%H-%M-%S')
+
+    database=get_database(dbfile)
+    database=database.drop(['src','class_code','user','so_rangedate'],1)
+    similar_names=find_similar_names(database,probability=probability)
+    if len(similar_names)>0:
+        to_fwf(similar_names,filename)
+        logging.info('Similar entries have been saved in the input file format as %s',filename)
+    else:
+        logging.info('There are no sililar names.')
 
 def interactive():
     while True:
-        print 'What would you like to do?\n1. Update database \n2. Export CRM \n3. Export database \n4. Create database (BIGBANG!)\n5. Exit'
+        print 'What would you like to do?\n1. Update database \n2. Export CRM \n3. Export database \n4. Create database (BIGBANG!)\n5. Find similar names.\n6. Exit'
         response = raw_input("default[1]: ") or '1'
     # Updating the database
         if response == '1':
@@ -93,8 +112,10 @@ def interactive():
     #Bigbang: creating the databse from scatch
         elif response == '4':
             big_bang()
-    #Exit
         elif response =='5':
+            similar()
+    #Exit
+        elif response =='6':
             break
         else:
             print 'Invalid input!'
