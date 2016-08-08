@@ -59,7 +59,7 @@ def update_database(update_file,database,bigbang=False):
                    index_col=None
                   )
     update.fillna('', inplace=True)
-
+    find_exceptions(update)
 
     update['acc_type']=update['acc_type'].astype('category')
     #update['class_code']=''
@@ -122,7 +122,7 @@ def save_database(database,filename=None):
 
 #Input database as a  pandas dataframe and returns a pandas dataframe with data in CRM format
 #Specify export = True if an excel export is required, in this case the function returns nothing
-def create_residential_crm(database,export=False,filename=None,abbr=True):
+def create_residential_crm(database,export=False,filename=None,abbr=True,multi_or=False):
     rr=database[(database.acc_type=='RR') & (database.list_code=='PB')]
     #rr=rr[rr.list_code=='PB']
     rr_crm=pd.DataFrame()
@@ -137,33 +137,33 @@ def create_residential_crm(database,export=False,filename=None,abbr=True):
     rr_crm['sam_estate']=rr.sam_estate
     rr_crm['City']=rr.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
-    rr_crm['class_code']=rr.class_code
     rr_crm=add_product(rr_crm,'RR')
+    rr_crm['class_code']=rr.class_code
     #rr_crm.loc(rr_crm.SAM_STNAME=='' and ,)
 
-    rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
-    rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
-    rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
-    rr_crm.SAM_STNAME = rr_crm.SAM_STNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
-    rr_crm.SAM_STSUBT = rr_crm.SAM_STSUBT.apply(lambda x: titlecase(x) if x.isupper() else x)
-    rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x) if x.isupper() else x)
+    rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    rr_crm.SAM_STNAME = rr_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    rr_crm.SAM_STSUBT = rr_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.City = rr_crm.City.apply(lambda x: titlecase(x))
     rr_crm.Province = rr_crm.Province.apply(lambda x: titlecase(x))
     #or call may not be necessary here
     fix_duplicate(rr_crm)
-    rr_crm= or_call(rr_crm)
+    rr_crm= or_call(rr_crm,multi_or=multi_or)
     if abbr == True:
         apply_abbr(rr_crm)
     if export == True:
         filename=filename or 'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
         #writer = pd.ExcelWriter(filename)
-        rr_crm.to_csv('rr_%s'%filename)
+        rr_crm.to_csv('rr_%s'%filename,index=False)
         #writer.save()
         logging.info('RR CRM saved in csv format with file name rr_%s',filename)
     logging.info('RR crm DONE')
     return rr_crm
 
-def create_government_crm(database,export=False,filename=None,abbr=True):
+def create_government_crm(database,export=False,filename=None,abbr=True,multi_or=False):
     go=database[(database.acc_type=='GO') & (database.list_code=='PB')]
     #go=go[go.list_code=='PB']
     go_crm=pd.DataFrame()
@@ -178,32 +178,33 @@ def create_government_crm(database,export=False,filename=None,abbr=True):
     go_crm['sam_estate']=go.sam_estate
     go_crm['City']=go.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     go_crm['Province']=go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
-    go_crm['class_code']=go.class_code
-#    go_crm['acc_type']='GO'
     go_crm=add_product(go_crm,'GO')
-    go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
-    go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
-    go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
-    go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
-    go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x) if x.isupper() else x)
-    go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x) if x.isupper() else x)
+    go_crm['class_code']=go.class_code
+
+    #    go_crm['acc_type']='GO'
+    go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.City = go_crm.City.apply(lambda x: titlecase(x))
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
     fix_duplicate(go_crm)
-    go_crm= or_call(go_crm)
+    go_crm= or_call(go_crm,multi_or=multi_or)
     if abbr == True:
         apply_abbr(go_crm)
     if export == True:
         filename = filename or 'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
         #writer = pd.ExcelWriter(filename)
-        go_crm.to_csv('go_%s'%filename)
+        go_crm.to_csv('go_%s'%filename,index=False)
         #writer.save()
         logging.info('GO CRM saved in csv format with file name go_%s', filename)
     logging.info('GO crm DONE')
 
     return go_crm
 
-def create_buisness_crm(database,export=False,filename=None,abbr=True):
+def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=False):
     br=database[(database.acc_type=='BR') & (database.list_code=='PB')]
     #br=br[br.list_code=='PB']
     br_crm=pd.DataFrame()
@@ -218,26 +219,27 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True):
     br_crm['sam_estate']=br.sam_estate
     br_crm['City']=br.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     br_crm['Province']=br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
-    br_crm['class_code']=br.class_code
-#    br_crm['acc_type']='BR'
+    #    br_crm['acc_type']='BR'
     br_crm=add_product(br_crm,'BR')
-    br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x) if x.isupper() else x)
-    br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x) if x.isupper() else x)
-    br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
-    br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x) if x.isupper() else x)
-    br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x) if x.isupper() else x)
-    br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x) if x.isupper() else x)
+    br_crm['class_code']=br.class_code
+
+    br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
     fix_duplicate(br_crm)
     #place orcall function here since we want LR and Lr to be duplicates
-    br_crm= or_call(br_crm)
+    br_crm= or_call(br_crm,multi_or=multi_or)
     if abbr == True:
         br_crm=apply_abbr(br_crm)
     if export == True:
         filename= filename or 'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
         #writer = pd.ExcelWriter(filename)
-        br_crm.to_csv('br_%s'%filename)
+        br_crm.to_csv('br_%s'%filename,index=False)
         #writer.save()
         logging.info( 'BR CRM saved in csv format with file name br_%s',filename)
     logging.info('BR crm DONE')
@@ -253,11 +255,11 @@ def create_crm(database,filename=None):
     writer.save()
     logging.info('CRM saved in xlsx format with file name %s',filename)
 
-def create_crm_csv(database,filename=None,abbr=True):
+def create_crm_csv(database,filename=None,abbr=True,multi_or=False):
     filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
-    create_residential_crm(database,export=True,filename=filename,abbr=abbr)
-    create_government_crm(database,export=True,filename=filename,abbr=abbr)
-    create_buisness_crm(database,export=True,filename=filename,abbr=abbr)
+    create_residential_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or)
+    create_government_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or)
+    create_buisness_crm(database,export=True,filename=filename,abbr=abbr, multi_or=multi_or)
     logging.info('CRM saved in csv format with file names %s',filename)
 
 def create_yellowpages_crm(database, filename=None):
@@ -265,7 +267,7 @@ def create_yellowpages_crm(database, filename=None):
     database.class_code=database.class_code.replace('', np.nan)
     database=database[database.class_code.notnull()]
     br_crm=create_buisness_crm(database)
-    br_crm.to_csv('br_%s'%filename)
+    br_crm.to_csv('br_%s'%filename,index=False)
     logging.info('Yellow Pages CRM saved in csv format with file names %s',filename)
 
 def database2xls(database,filename=None):
@@ -296,7 +298,7 @@ def city2abr(arg):
     return city_abbr.get(arg.lower(),arg)
 #note: pdf if not clear on the placement of the or call in the crm for now it will be put in the city
 
-def or_call(crm):
+def or_call(crm, multi_or=False):
     crm.reset_index(drop=True,inplace=True)
     index=crm.duplicated(['name1','name2','City','Province','SAM_BLDNAME','SAM_STNAME'])
     skip=False
@@ -310,21 +312,25 @@ def or_call(crm):
                 pass
             crm.SAM_BLDNAME.iloc[i]=''
             crm.SAM_STNMFR.iloc[i]=''
-            crm.SAM_STNAME.iloc[i]=''
+            #crm.SAM_STNAME.iloc[i]=''
             crm.SAM_STSUBT.iloc[i]=''
             crm.sam_estate.iloc[i]=''
             crm.Province.iloc[i]=''
+            crm.City.iloc[i]=''
+
             crm.class_code.iloc[i]=''
-            crm.Product.iloc[i]=''
+            #crm.Product.iloc[i]=''
 
             if skip == False:
                 crm.Phone.iloc[i-1]=str(prev_line.Phone)+'/'+str(line.Phone)
                 crm.Phone.iloc[i]=np.nan
-                if index.iloc[i-1] == False and index.iloc[i+1]==True:
-                   crm.City.iloc[i+1]='Or Call:'
+                if multi_or==False:
+                    if index.iloc[i-1] == False and index.iloc[i+1]==True:
+                       crm.SAM_STNAME.iloc[i+1]='Or Call'
+                    else:
+                       crm.SAM_STNAME.iloc[i+1]=''
                 else:
-                   crm.City.iloc[i+1]=''
-
+                    crm.SAM_STNAME.iloc[i+1]='Or Call'
                 try:
                     if index.iloc[i+1] == True:
                         skip =True
@@ -370,13 +376,12 @@ def add_class_code(database):
     classes_up.fillna(value='', inplace=True)
     classes_up.Phone=classes_up.Phone.astype('int64')
     classes_up.Areacode=classes_up.Areacode.astype('int64')
-
-#classes_up.class_code=classes_up.class_code.astype('int64')
+    #classes_up.class_code=classes_up.class_code.astype('int64')
     #classes_up = classes_up.drop(['Areacode','Product'], 1)
     database_up=database.copy()
     database_up.last_name=database_up.last_name.str.upper()
     database_up.first_name=database_up.first_name.str.upper()
-#database_up.update(classes_up)
+    #database_up.update(classes_up)
     database_up['Phone']=database_up.mem_wstd.str.slice(-7).astype('int64')
     database_up['Areacode']=database_up.mem_wstd.str.slice(0,-7).astype('int64')
     database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name'], how='left')
@@ -404,8 +409,16 @@ def find_similar_names(db,probability=0.6):
         prev_last=db.iloc[index].last_name.upper()
     similardb=pd.DataFrame(similar)
     return similardb.drop_duplicates()
-#def find_exceptions():
 
+def find_exceptions(update):
+    exception_list=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$', regex=True)
+    exceptions=update[exception_list]
+    filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
+    to_fwf(exceptions,filename)
+    logging.info('%i lines have been tagged as exceptions and have been written to %s'%(len(exceptions),filename))
+    logging.debug('The following are marked as exceptions')
+    logging.debug(exceptions.last_name)
+    return update[~exception_list]
 
 def to_fwf(db,filename):
     formats=[]

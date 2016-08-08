@@ -13,6 +13,8 @@ __all__ = ['titlecase']
 __version__ = '0.5.2'
 small_word_file =open("config/small_words",'r')
 SMALL = str(small_word_file.read().rstrip('\n'))
+always_caps_file =open("config/alwaysCAPS",'r')
+CAPS = str(always_caps_file.read().rstrip('\n'))
 #ADD USUAL FILIPINO articles
 PUNCT = r"""!"#$%&'‘()*+,\-./:;?@[\\\]_`{|}~"""
 
@@ -28,6 +30,7 @@ APOS_SECOND = re.compile(r"^[dol]{1}['‘]{1}[a-z]+$", re.I)
 ALL_CAPS = re.compile(r'^[A-Z\s%s]+$' % PUNCT)
 UC_INITIALS = re.compile(r"^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$")
 MAC_MC = re.compile(r"^([Mm]a?c)(\w+)")
+ALWAYS_CAPS = re.compile(r'^(%s)$' % CAPS, re.I)
 
 def titlecase(text):
 
@@ -65,6 +68,9 @@ def titlecase(text):
                 continue
             if SMALL_WORDS.match(word):
                 tc_line.append(word.lower())
+                continue
+            if ALWAYS_CAPS.match(word):
+                tc_line.append(word.upper())
                 continue
 
             match = MAC_MC.match(word)

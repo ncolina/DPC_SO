@@ -2,7 +2,7 @@ from functions.imports import *
 import os
 import sys, argparse
 import logging
-
+import time
 
 def update_prompt():
     newest = get_newest_db()
@@ -16,11 +16,12 @@ def update_prompt():
         if os.path.isfile(update) == True:
             break
         print 'That file does not exist.'
-
+    name='database_backups/database-%s.hdf5'% time.strftime('%Y-%m-%d-%H-%M-%S')
+    filename=raw_input('What would you like to name the updated database? [Default: %s]'%name) or name
     database=get_database(dbfile)
     database=update_database(update,database)
-    save_database(database)
-    logging.info('%s has been updated',dbfile)
+    save_database(database,filename)
+    logging.info('%s has been updated and saves as %s',dbfile,filename)
 
 
 def crm_prompt():
@@ -32,7 +33,14 @@ def crm_prompt():
         print 'That file does not exist.'
     yellowpages=raw_input('YellowPages? Y/N [Default:N] ') or 'N'
     ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]: ') or 'Y'
+    mult_or=raw_input('"Multiple or"/or "single or". M/S [Default S]: ') or "S"
+    name='crm-%s.csv'% time.strftime('%Y-%m-%d-%H-%M-%S')
+    filename=raw_input('What would you like the base name for the exported crm to be? [Default: %s]'%name) or name
     database=get_database(dbfile)
+    if mult_or=="M" or mult_or=='m':
+        multi_or=True
+    else:
+        multi_or=False
     if ab_choice == 'Y' or ab_choice =='y': #if abbreviations are not desired then it should be said by having any othe input except Y/y
         abbr=True
     else:
@@ -42,13 +50,13 @@ def crm_prompt():
     else:# yellowpages == 'N' or yellowpages =='n':
         choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
         if choice == 'ALL':
-            create_crm_csv(database, abbr=abbr)
+            create_crm_csv(database, filename=filename, abbr=abbr,multi_or=multi_or)
         elif choice == 'GO':
-            create_government_crm(database, export=True,abbr=abbr)
+            create_government_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or)
         elif choice == 'BR':
-            create_buisness_crm(database, export=True,abbr=abbr)
+            create_buisness_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or)
         elif choice == 'RR':
-            create_residential_crm(database, export=True,abbr=abbr)
+            create_residential_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or)
         else:
             print "Invalid input!"
 
@@ -61,8 +69,10 @@ def export_prompt():
         if os.path.isfile(dbfile) == True:
             break
         print 'That file does not exist.'
+    name='db-%s.csv'% time.strftime('%Y-%m-%d-%H-%M-%S')
+    filename=raw_input('What would you like the base name for the exported database to be? [Default: %s]'%name) or name
     database=get_database(dbfile)
-    database2csv(database)
+    database2csv(database,filename)
     logging.info('Database has been exported as a csv from %s', dbfile)
 
 
@@ -72,8 +82,10 @@ def big_bang():
         if os.path.isfile(update) == True:
             break
         print 'That file does not exist.'
+    name='database_backups/database-%s.hdf5'% time.strftime('%Y-%m-%d-%H-%M-%S')
+    filename=raw_input('What would you like to name the database? [Default: %s]'%name) or name
     database=update_database(update,None,bigbang=True)
-    save_database(database)
+    save_database(database,filename)
     logging.info('Database has been created from %s  ', update)
 
 def similar():
@@ -85,7 +97,8 @@ def similar():
             break
         print 'That file does not exist.'
     probability=float(raw_input('Similarity probability [Default: 0.6]')or 0.6)
-    filename='similar_%s'%time.strftime('%Y-%m-%d-%H-%M-%S')
+    name='similar_%s'%time.strftime('%Y-%m-%d-%H-%M-%S')
+    filename=raw_input('What would you like to name the file containing the similar names? [Default: %s]'%name) or name
 
     database=get_database(dbfile)
     database=database.drop(['src','class_code','user','so_rangedate'],1)
@@ -145,13 +158,6 @@ def commandline():
             sys.exit("input file does not exist")
         database=update_database(update,None,bigbang=True)
         save_database(database,filename=output)
-    elif args.mode=='db2xls':
-        dbfile=args.db
-        output=args.output
-        if os.path.isfile(dbfile) == False:
-            sys.exit("database file does not exist")
-        database=get_database(dbfile)
-        database2xls(database,filename=output)
     elif args.mode=='db2csv':
         dbfile=args.db
         output=args.output
@@ -166,5 +172,13 @@ def commandline():
             sys.exit("database file does not exist")
         database=get_database(dbfile)
         create_crm(database,filename=output)
+    elif args.mode=='similar':
+        dbfile=args.db
+        output=args.output
+        if os.path.isfile(dbfile) == False:
+            sys.exit("database file does not exist")
+        database=get_database(dbfile)
+        database=find_similar_names(database)
+        to_fwf(database,filename=output)
     elif args.mode=='interactive':
         interactive()
