@@ -7,21 +7,26 @@ Package Reqirements:
 -numpy
 -glob
 -pytables
+-xlp
+-differ
 
 
 TO run the script interactively:
 python main.py
 
+
+
+
 The script can also be run with command line switches
 
-python -m <mode> -i <inputfile> -o <outputfile> -db <database>
+python main.py -m <mode> -i <inputfile> -o <outputfile> -db <database>
 possible modes:
 'interactive'-default
 'update_db'- updates a database takes an input a database and an output can be specified
 'bigbang'- creates a database. takes an input and an output can be specified
-'db2xls'- exports a database to excel format. takes in a databse and an outputfile can be specified
 'db2csv'- exports a database to csv format. takes in a databse and an outputfile can be specified
 'exportcrm'- exports a database to excel format in the CRM format. takes in a databse and an outputfile can be specified
+<<<<<<< HEAD
 
 
 TODO:
@@ -68,3 +73,6 @@ small_words - separate by | | |
 areacodes -csv
 city_abbreviations - csv
 prov_abbreviations -csv
+=======
+'similar'- finds similar entries in the databas
+>>>>>>> dev
