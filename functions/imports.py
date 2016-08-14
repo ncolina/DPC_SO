@@ -61,7 +61,7 @@ def update_database(update_file,database,bigbang=False):
                   )
     update.fillna('', inplace=True)
 
-    find_exceptions(update)
+    update=find_exceptions(update)
 
 
     update['acc_type']=update['acc_type'].astype('category')
