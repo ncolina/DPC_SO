@@ -15,6 +15,7 @@ TO run the script interactively:
 python main.py
 
 
+Company_Class should be a csv and with only one phone number per entry. NOT 9283101/9103803
 
 
 The script can also be run with command line switches
@@ -26,4 +27,7 @@ possible modes:
 'bigbang'- creates a database. takes an input and an output can be specified
 'db2csv'- exports a database to csv format. takes in a databse and an outputfile can be specified
 'exportcrm'- exports a database to excel format in the CRM format. takes in a databse and an outputfile can be specified
-'similar'- finds similar entries in the databas
+'similar'- finds similar entries in the database
+
+todo:
+look for ñ and other special characters

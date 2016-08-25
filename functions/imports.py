@@ -46,6 +46,11 @@ def get_database(file):
 
 def update_database(update_file,database,bigbang=False):
     so_file=update_file
+    #with open(update_file,'r+') as file:
+    #    for line in file:
+    #        if line[:-1]:
+    #            file.write(line)
+
     logging.info("updating from; %s", so_file)
 
     names = Config.options('input_format')
@@ -57,7 +62,7 @@ def update_database(update_file,database,bigbang=False):
                    converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str,'old_wstd':str,'so_date':str},
                    #error_bad_lines=True,
                    #dtype='object',
-                   index_col=None
+                   index_col=None,
                   )
     update.fillna('', inplace=True)
 
@@ -92,8 +97,8 @@ def update_database(update_file,database,bigbang=False):
     database.loc[database.account_no.isin(IR.account_no), 'src']=so_file.split('/')[-1]
     database.loc[database.account_no.isin(IR.account_no), 'so_rangedate']=time.strftime("%Y-%m-%d")
     database.loc[database.account_no.isin(IR.account_no), 'user']=os.getlogin()
-
-    database[database.account_no.isin(CL.account_no)].update(update)
+    if len(database.account_no.isin(CL.account_no))>0:
+        database[database.account_no.isin(CL.account_no)].update(update)
     database=database.append(IN)
     if len(NONE) > 0:
         to_fwf(NONE.drop(['class_code','src','so_rangedate','user']),'no_sotype_%s.txt' % time.strftime("%Y-%m-%d"))
@@ -115,7 +120,7 @@ def update_database(update_file,database,bigbang=False):
 
     database.sort_values(by='last_name',inplace=True)
     database.drop_duplicates(names,inplace=True)
-    database.reset_index(drop=True,inplace=True)
+    database.reset_index(inplace=True)
     return database
 
 def save_database(database,filename=None):
@@ -132,13 +137,13 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     rr_crm=pd.DataFrame()
     rr_crm['Areacode']=rr.mem_wstd.str.slice(0,-7)#.astype('int64')#get_areacode(rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     rr_crm['Phone']=rr.mem_wstd.str.slice(-7)
-    rr_crm['name1']=rr.last_name
-    rr_crm['name2']=rr.first_name
-    rr_crm['SAM_BLDNAME']=rr.sam_bldname
-    rr_crm['SAM_STNMFR']=rr.sam_stnmfr
-    rr_crm['SAM_STNAME']=rr.sam_stname
-    rr_crm['SAM_STSUBT']=rr.sam_stsubt
-    rr_crm['sam_estate']=rr.sam_estate
+    rr_crm['name1']=rr.last_name.astype('str')
+    rr_crm['name2']=rr.first_name.astype('str')
+    #rr_crm['SAM_BLDNAME']=rr.sam_bldname
+    rr_crm['SAM_STNMFR']=rr.sam_stnmfr.astype('str')
+    rr_crm['SAM_STNAME']=rr.sam_stname.astype('str')
+    rr_crm['SAM_STSUBT']=rr.sam_stsubt.astype('str')
+    rr_crm['sam_estate']=rr.sam_estate.astype('str')
     rr_crm['City']=rr.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     rr_crm=add_product(rr_crm,'RR')
@@ -147,7 +152,7 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
 
     rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    #rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.SAM_STNAME = rr_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.SAM_STSUBT = rr_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -174,22 +179,23 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
     go_crm=pd.DataFrame()
     go_crm['Areacode']=go.mem_wstd.str.slice(0,-7)#.astype('int64')##get_areacode(go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     go_crm['Phone']=go.mem_wstd.str.slice(-7)
-    go_crm['name1']=go.last_name
-    go_crm['name2']=go.first_name
-    go_crm['SAM_BLDNAME']=go.sam_bldname
-    go_crm['SAM_STNMFR']=go.sam_stnmfr
-    go_crm['SAM_STNAME']=go.sam_stname
-    go_crm['SAM_STSUBT']=go.sam_stsubt
-    go_crm['sam_estate']=go.sam_estate
+    go_crm['name1']=go.last_name.astype('str')
+    go_crm['name2']=go.first_name.astype('str')
+    #go_crm['SAM_BLDNAME']=go.sam_bldname
+    go_crm['SAM_STNMFR']=go.sam_stnmfr.astype('str')
+    go_crm['SAM_STNAME']=go.sam_stname.astype('str')
+    go_crm['SAM_STSUBT']=go.sam_stsubt.astype('str')
+    go_crm['sam_estate']=go.sam_estate.astype('str')
     go_crm['City']=go.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     go_crm['Province']=go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     go_crm=add_product(go_crm,'GO')
     go_crm['class_code']=go.class_code
 
+
     #    go_crm['acc_type']='GO'
     go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    #go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -215,13 +221,13 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm=pd.DataFrame()
     br_crm['Areacode']=br.mem_wstd.str.slice(0,-7)#.astype('int64')##get_areacode(br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     br_crm['Phone']=br.mem_wstd.str.slice(-7)
-    br_crm['name1']=br.last_name
-    br_crm['name2']=br.first_name
-    br_crm['SAM_BLDNAME']=br.sam_bldname
-    br_crm['SAM_STNMFR']=br.sam_stnmfr
-    br_crm['SAM_STNAME']=br.sam_stname
-    br_crm['SAM_STSUBT']=br.sam_stsubt
-    br_crm['sam_estate']=br.sam_estate
+    br_crm['name1']=br.last_name.astype('str')
+    br_crm['name2']=br.first_name.astype('str')
+    br_crm['SAM_BLDNAME']=br.sam_bldname.astype('str')
+    br_crm['SAM_STNMFR']=br.sam_stnmfr.astype('str')
+    br_crm['SAM_STNAME']=br.sam_stname.astype('str')
+    br_crm['SAM_STSUBT']=br.sam_stsubt.astype('str')
+    br_crm['sam_estate']=br.sam_estate.astype('str')
     br_crm['City']=br.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     br_crm['Province']=br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    br_crm['acc_type']='BR'
@@ -248,7 +254,7 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
         br_crm.to_csv('br_%s'%filename,index=False)
         #writer.save()
 
-        logging.info( 'BR CRM saved in csv format with file name br_%s',filename)
+        logging.info( 'BR CRM   saved in csv format with file name br_%s',filename)
     logging.info('BR crm DONE')
 
     return br_crm
@@ -308,18 +314,21 @@ def city2abr(arg):
 
 def or_call(crm, multi_or=False):
     crm.reset_index(drop=True,inplace=True)
-    index=crm.duplicated(['name1','name2','City','Province','SAM_BLDNAME','SAM_STNAME'])
+    index=crm.duplicated(['name1','name2','City','Province','SAM_STNAME'])
     skip=False
     for i in xrange(len(index)):
         if index.iloc[i] == True:
-            line=crm.ix[i]
-            prev_line=crm.ix[i-1]
+            line=crm.iloc[i]
+            prev_line=crm.iloc[i-1]
             try:
                 next_line=crm.iloc[i+1]
             except:
                 pass
 
-            crm.SAM_BLDNAME.iloc[i]=''
+            try:
+                crm.SAM_BLDNAME.iloc[i ]=''
+            except:
+                pass
             crm.SAM_STNMFR.iloc[i]=''
             #crm.SAM_STNAME.iloc[i]=''
             crm.SAM_STSUBT.iloc[i]=''
@@ -334,12 +343,19 @@ def or_call(crm, multi_or=False):
                 crm.Phone.iloc[i-1]=str(prev_line.Phone)+'/'+str(line.Phone)
                 crm.Phone.iloc[i]=np.nan
                 if multi_or==False:
-                    if index.iloc[i-1] == False and index.iloc[i+1]==True:
-                       crm.SAM_STNAME.iloc[i+1]='Or Call'
-                    else:
-                       crm.SAM_STNAME.iloc[i+1]=''
+                    try:
+                        if index.iloc[i-1] == False and index.iloc[i+1]==True:
+                            crm.SAM_STNAME.iloc[i+1]='Or Call'
+                        elif index.iloc[i+1]==True:
+                            crm.SAM_STNAME.iloc[i+1]=''
+                    except:
+                        pass
                 else:
-                    crm.SAM_STNAME.iloc[i+1]='Or Call'
+                    try:
+                        if index.iloc[i+1]==True:
+                            crm.SAM_STNAME.iloc[i+1]='Or Call'
+                    except:
+                        pass
                 try:
                     if index.iloc[i+1] == True:
                         skip =True
@@ -363,6 +379,7 @@ def apply_abbr(crm):
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
     crm.drop_duplicates('Phone',keep='last',inplace=True)
+
     #make copy to change case and strip punctuation then check for duplicates. Use this as an index to remove from final crm output
 
 def add_product(crm,acc_type):
@@ -377,11 +394,14 @@ def add_product(crm,acc_type):
     return crm
 
 def add_class_code(database):
-    classes=pd.read_excel('Company_Class.xlsx')
-    classes.rename(columns={'name1': 'last_name', 'name2': 'first_name'}, inplace=True)
+    classes=pd.read_csv('Company_Class.csv')
+    classes.rename(columns={'name1': 'last_name', 'name2': 'first_name','SAM_STNAME':'sam_stname','SAM_BLDNAME':'sam_bldname','SAM_STNMFR':'sam_stnmfr','SAM_STSUBT':'sam_stsubt'}, inplace=True)
     classes_up=classes.copy()
     classes_up.last_name=classes_up.last_name.str.upper()
     classes_up.first_name=classes_up.first_name.str.upper()
+    classes_up.sam_stname=classes_up.sam_stname.str.upper()
+    classes_up.sam_bldname=classes_up.sam_bldname.str.upper()
+    classes_up.sam_stsubt=classes_up.sam_stsubt.str.upper()
     classes_up.fillna(value='', inplace=True)
     classes_up.Phone=classes_up.Phone.astype('int64')
     classes_up.Areacode=classes_up.Areacode.astype('int64')
@@ -390,14 +410,21 @@ def add_class_code(database):
     database_up=database.copy()
     database_up.last_name=database_up.last_name.str.upper()
     database_up.first_name=database_up.first_name.str.upper()
+    database_up.sam_stname=database_up.sam_stname.str.upper()
+    database_up.sam_bldname=database_up.sam_bldname.str.upper()
+    database_up.sam_stsubt=database_up.sam_stsubt.str.upper()
     #database_up.update(classes_up)
     database_up['Phone']=database_up.mem_wstd.str.slice(-7).astype('int64')
     database_up['Areacode']=database_up.mem_wstd.str.slice(0,-7).astype('int64')
-    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name'], how='left')
+    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name','sam_stname','sam_bldname','sam_stnmfr','sam_stsubt'], how='left')
     database_coded.last_name=database.last_name
     database_coded.first_name=database.first_name
+    database_coded.sam_stname=database.sam_stname
+    database_coded.sam_bldname=database.sam_bldname
+    database_coded.sam_stnmfr=database.sam_stnmfr
+    #database_coded.sam_stname=database.sam_stname
     database_coded = database_coded.drop(['Phone','Areacode'], 1)
-    database_coded.fillna(value='', inplace=True)
+    #database_coded.fillna(value='', inplace=True)
 
     return database_coded
 
@@ -420,7 +447,7 @@ def find_similar_names(db,probability=0.6):
     return similardb.drop_duplicates()
 
 def find_exceptions(update):
-    exception_list=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$', regex=True)
+    exception_list=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\x80-\xFF]', regex=True)
     exceptions=update[exception_list]
     filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
     to_fwf(exceptions,filename)
