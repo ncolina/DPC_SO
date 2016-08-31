@@ -46,12 +46,8 @@ def get_database(file):
 
 def update_database(update_file,database,bigbang=False):
     so_file=update_file
-    #with open(update_file,'r+') as file:
-    #    for line in file:
-    #        if line[:-1]:
-    #            file.write(line)
 
-    logging.info("updating from; %s", so_file)
+    logging.info("Loading from; %s", so_file)
 
     names = Config.options('input_format')
     widths=[int(Config.get('input_format',name)) for name in names ]
@@ -59,7 +55,7 @@ def update_database(update_file,database,bigbang=False):
                    header=None,
                    widths=widths,
                    names=names,
-                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str,'old_wstd':str,'so_date':str},
+                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str,'old_wstd':str,'so_date':str,'acc_type':str},
                    #error_bad_lines=True,
                    #dtype='object',
                    index_col=None,
@@ -69,9 +65,9 @@ def update_database(update_file,database,bigbang=False):
     update=find_exceptions(update)
 
 
-    update['acc_type']=update['acc_type'].astype('category')
-    #update['class_code']=''
-    update=add_class_code(update)
+    update['acc_type']=update['acc_type']#.astype('category')
+    update['class_code']=''
+    #update=add_class_code(update)
     update['class_code']=update['class_code'].astype('str')
 
     update['src']=so_file.split('/')[-1]
@@ -422,7 +418,7 @@ def add_class_code(database):
     database_coded.sam_stname=database.sam_stname
     database_coded.sam_bldname=database.sam_bldname
     database_coded.sam_stnmfr=database.sam_stnmfr
-    #database_coded.sam_stname=database.sam_stname
+    database_coded.sam_stname=database.sam_stname
     database_coded = database_coded.drop(['Phone','Areacode'], 1)
     database_coded.fillna(value='', inplace=True)
 
