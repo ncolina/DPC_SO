@@ -96,13 +96,23 @@ def update_database(update_file,database,bigbang=False):
     if len(database.account_no.isin(CL.account_no))>0:
         database[database.account_no.isin(CL.account_no)].update(update)
     database=database.append(IN)
+    no_db_entry=pd.DataFrame()
+    no_db_entry=no_db_entry.append(OP)
+    no_db_entry=no_db_entry.append(IR)
+    no_db_entry=no_db_entry.append(CL)
+    no_db_entry=no_db_entry[(~no_db_entry.account_no.isin(database.account_no)) &(~no_db_entry.account_no.isin(database.account_no))&(~no_db_entry.account_no.isin(database.account_no))]
+    database=database.append(no_db_entry)
+
     if len(NONE) > 0:
         to_fwf(NONE.drop(['class_code','src','so_rangedate','user']),'no_sotype_%s.txt' % time.strftime("%Y-%m-%d"))
     logging.info("%i entries have been added to the database", len(IN.index))
     logging.info("%i entries have been updated in the database", sum(database.account_no.isin(CL.account_no)))
     logging.info("%i entries have been made PB", sum(database.account_no.isin(IR.account_no)))
     logging.info("%i entries have been made CO",sum(database.account_no.isin(OP.account_no)))
+    logging.info('%i lines were marked for update but were not in the database. They have been inserted in the database',len(no_db_entry.index) )
+
     logging.info('%i lines had no so_type and have been written for updating',len(NONE.index) )
+
     logging.debug('the following entries have been added to the database')
     logging.debug(IN.last_name)
     logging.debug('The following have been updated')
@@ -111,12 +121,14 @@ def update_database(update_file,database,bigbang=False):
     logging.debug(database[database.account_no.isin(IR.account_no)].last_name)
     logging.debug('The following have been made CO')
     logging.debug(database[database.account_no.isin(OP.account_no)].last_name)
+    logging.debug('The following have been marked for update but are not in the db. They have been inserted into the db.')
+    logging.debug(no_db_entry.last_name)
     logging.debug('The following lines have no so_type and have been written for updating')
     logging.debug(NONE.last_name)
 
     database.sort_values(by='last_name',inplace=True)
     database.drop_duplicates(names,inplace=True)
-    database.reset_index(inplace=True)
+    database.reset_index(inplace=True,drop=True)
     return database
 
 def save_database(database,filename=None):
