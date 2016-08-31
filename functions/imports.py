@@ -271,13 +271,42 @@ def create_crm_csv(database,filename=None,abbr=True,multi_or=False):
     create_buisness_crm(database,export=True,filename=filename,abbr=abbr, multi_or=multi_or)
     logging.info('CRM saved in csv format with file names %s',filename)
 
-def create_yellowpages_crm(database, filename=None):
+def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
+    yp=yp_crm_code(database)
+    #br=br[br.list_code=='PB']
+    yp_crm=pd.DataFrame()
+    yp_crm['Areacode']=yp.mem_wstd.str.slice(0,-7)#.astype('int64')##get_areacode(yp.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
+    yp_crm['Phone']=yp.mem_wstd.str.slice(-7)
+    yp_crm['name1']=yp.last_name.astype('str')
+    yp_crm['name2']=yp.first_name.astype('str')
+    yp_crm['SAM_BLDNAME']=yp.sam_bldname.astype('str')
+    yp_crm['SAM_STNMFR']=yp.sam_stnmfr.astype('str')
+    yp_crm['SAM_STNAME']=yp.sam_stname.astype('str')
+    yp_crm['SAM_STSUBT']=yp.sam_stsubt.astype('str')
+    yp_crm['sam_estate']=yp.sam_estate.astype('str')
+    yp_crm['City']=yp.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
+    yp_crm['Province']=yp.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
+    #    yp_crm['acc_type']='yp'
+    yp_crm=add_product(yp_crm,'BR')
+    yp_crm['class_code']=yp.class_code
+
+    yp_crm.name1 = yp_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    yp_crm.name2 = yp_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    yp_crm.SAM_BLDNAME = yp_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    yp_crm.SAM_STNAME = yp_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    yp_crm.SAM_STSUBT = yp_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    yp_crm.sam_estate = yp_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    yp_crm.City = yp_crm.City.apply(lambda x: titlecase(x))
+    yp_crm.Province = yp_crm.Province.apply(lambda x: titlecase(x))
+    fix_duplicate(yp_crm)
+    yp_crm= or_call(yp_crm,multi_or=multi_or)
+    if abbr == True:
+        yp_crm=apply_abbr(yp_crm)
     filename=filename or'yp_crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
-    database.class_code=database.class_code.replace('', np.nan)
-    database=database[database.class_code.notnull()]
-    br_crm=create_buisness_crm(database)
-    br_crm.to_csv('br_%s'%filename,index=False)
+    yp_crm.to_csv('yp_%s'%filename,index=False)
+    logging.info('yp crm DONE')
     logging.info('Yellow Pages CRM saved in csv format with file names %s',filename)
+
 
 def database2xls(database,filename=None):
     filename=filename or 'db_%s.xlsx' % time.strftime('%Y-%m-%d-%H-%M-%S')
@@ -385,14 +414,14 @@ def add_product(crm,acc_type):
     product.rename(columns={'PROVINCE': 'Province', 'AREACODE': 'Areacode','PRODUCT SECTION':'Product'}, inplace=True)
     product.Province=product.Province.str.upper()
     crm.Areacode=crm.Areacode.astype('int64')
-    crm = pd.merge(crm,product, on=['Province','Areacode'], how='inner')
+    crm = pd.merge(crm,product, on=['Province','Areacode'], how='left')
     crm.Areacode=crm.Areacode.astype('object')
     return crm
 
-def add_class_code(database):
+def yp_crm_code(database):
     classes=pd.read_csv('Company_Class.csv')
     classes.rename(columns={'name1': 'last_name', 'name2': 'first_name','SAM_STNAME':'sam_stname','SAM_BLDNAME':'sam_bldname','SAM_STNMFR':'sam_stnmfr','SAM_STSUBT':'sam_stsubt'}, inplace=True)
-    classes_up=classes.copy()
+    classes_up=classes#.copy()
     classes_up.last_name=classes_up.last_name.str.upper()
     classes_up.first_name=classes_up.first_name.str.upper()
     classes_up.sam_stname=classes_up.sam_stname.str.upper()
@@ -401,24 +430,26 @@ def add_class_code(database):
     classes_up.fillna(value='', inplace=True)
     classes_up.Phone=classes_up.Phone.astype('int64')
     classes_up.Areacode=classes_up.Areacode.astype('int64')
-    #classes_up.class_code=classes_up.class_code.astype('int64')
+    classes_up.class_code=classes_up.class_code.astype('str')
     #classes_up = classes_up.drop(['Areacode','Product'], 1)
-    database_up=database.copy()
+    database_up=database#.copy()
     database_up.last_name=database_up.last_name.str.upper()
     database_up.first_name=database_up.first_name.str.upper()
     database_up.sam_stname=database_up.sam_stname.str.upper()
     database_up.sam_bldname=database_up.sam_bldname.str.upper()
     database_up.sam_stsubt=database_up.sam_stsubt.str.upper()
+    #database_up = database_up.drop('Product', 1)
     #database_up.update(classes_up)
     database_up['Phone']=database_up.mem_wstd.str.slice(-7).astype('int64')
     database_up['Areacode']=database_up.mem_wstd.str.slice(0,-7).astype('int64')
-    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name','sam_stname','sam_bldname','sam_stnmfr','sam_stsubt'], how='left')
-    database_coded.last_name=database.last_name
-    database_coded.first_name=database.first_name
-    database_coded.sam_stname=database.sam_stname
-    database_coded.sam_bldname=database.sam_bldname
-    database_coded.sam_stnmfr=database.sam_stnmfr
-    database_coded.sam_stname=database.sam_stname
+    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name','sam_stname','sam_bldname','sam_stnmfr','sam_stsubt'], how='inner')
+    database_coded=pd.merge(database_coded,classes_up)
+    #database_coded.last_name=database.last_name
+    #database_coded.first_name=database.first_name
+    #database_coded.sam_stname=database.sam_stname
+    #database_coded.sam_bldname=database.sam_bldname
+    #database_coded.sam_stnmfr=database.sam_stnmfr
+    #database_coded.sam_stname=database.sam_stname
     database_coded = database_coded.drop(['Phone','Areacode'], 1)
     database_coded.fillna(value='', inplace=True)
 

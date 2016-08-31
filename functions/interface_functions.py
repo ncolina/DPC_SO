@@ -46,7 +46,7 @@ def crm_prompt():
     else:
         abbr = False
     if yellowpages=='y' or yellowpages=='Y':
-        create_yellowpages_crm(database)
+        create_yellowpages_crm(database, filename=filename, abbr=abbr,multi_or=multi_or)
     else:# yellowpages == 'N' or yellowpages =='n':
         choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
         if choice == 'ALL':
