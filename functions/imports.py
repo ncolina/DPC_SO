@@ -424,7 +424,7 @@ def add_class_code(database):
     database_coded.sam_stnmfr=database.sam_stnmfr
     #database_coded.sam_stname=database.sam_stname
     database_coded = database_coded.drop(['Phone','Areacode'], 1)
-    #database_coded.fillna(value='', inplace=True)
+    database_coded.fillna(value='', inplace=True)
 
     return database_coded
 
