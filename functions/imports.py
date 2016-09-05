@@ -55,7 +55,7 @@ def update_database(update_file,database,bigbang=False):
                    header=None,
                    widths=widths,
                    names=names,
-                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str,'old_wstd':str,'so_date':str,'acc_type':str},
+                   converters = {'mem_wstd': str, 'sam_stnmfr':str,'account_no':str,'old_wstd':str,'so_date':str,'acc_type':str,'list_code':str},
                    #error_bad_lines=True,
                    #dtype='object',
                    index_col=None,
@@ -75,7 +75,7 @@ def update_database(update_file,database,bigbang=False):
     update['user']= os.getlogin()
 
     if bigbang == True:
-        update.sort_values(by='last_name',inplace=True)
+        update.sort_values(by=['last_name','first_name','sam_stname'],inplace=True)
         update.drop_duplicates(names,inplace=True)
         update.reset_index(drop=True,inplace=True)
         return update
@@ -126,7 +126,7 @@ def update_database(update_file,database,bigbang=False):
     logging.debug('The following lines have no so_type and have been written for updating')
     logging.debug(NONE.last_name)
 
-    database.sort_values(by='last_name',inplace=True)
+    database.sort_values(by=['last_name','first_name','sam_stname'],inplace=True)
     database.drop_duplicates(names,inplace=True)
     database.reset_index(inplace=True,drop=True)
     return database
@@ -140,14 +140,15 @@ def save_database(database,filename=None):
 #Specify export = True if an excel export is required, in this case the function returns nothing
 
 def create_residential_crm(database,export=False,filename=None,abbr=True,multi_or=False):
-    rr=database[(database.acc_type=='RR') & (database.list_code=='PB')]
+    rr=database[database.acc_type=='RR']
+    rr=rr[rr.list_code=='PB']
     #rr=rr[rr.list_code=='PB']
     rr_crm=pd.DataFrame()
     rr_crm['Areacode']=rr.mem_wstd.str.slice(0,-7)#.astype('int64')#get_areacode(rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
     rr_crm['Phone']=rr.mem_wstd.str.slice(-7)
     rr_crm['name1']=rr.last_name.astype('str')
     rr_crm['name2']=rr.first_name.astype('str')
-    #rr_crm['SAM_BLDNAME']=rr.sam_bldname
+    rr_crm['SAM_BLDNAME']=''#rr.sam_bldname
     rr_crm['SAM_STNMFR']=rr.sam_stnmfr.astype('str')
     rr_crm['SAM_STNAME']=rr.sam_stname.astype('str')
     rr_crm['SAM_STSUBT']=rr.sam_stsubt.astype('str')
@@ -156,6 +157,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     rr_crm['Province']=rr.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     rr_crm=add_product(rr_crm,'RR')
     rr_crm['class_code']=rr.class_code
+    rr_crm['class_desc']=''
+
     #rr_crm.loc(rr_crm.SAM_STNAME=='' and ,)
 
     rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -182,7 +185,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     return rr_crm
 
 def create_government_crm(database,export=False,filename=None,abbr=True,multi_or=False):
-    go=database[(database.acc_type=='GO') & (database.list_code=='PB')]
+    go=database[database.acc_type=='GO']
+    go=go[go.list_code=='PB']
     #go=go[go.list_code=='PB']
     go_crm=pd.DataFrame()
     go_crm['Areacode']=go.mem_wstd.str.slice(0,-7)#.astype('int64')##get_areacode(go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
@@ -198,12 +202,14 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
     go_crm['Province']=go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     go_crm=add_product(go_crm,'GO')
     go_crm['class_code']=go.class_code
+    go_crm['class_desc']=''
+
 
 
     #    go_crm['acc_type']='GO'
     go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    #go_crm.SAM_BLDNAME = go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    go_crm.SAM_BLDNAME = ''#go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -224,7 +230,8 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
     return go_crm
 
 def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=False):
-    br=database[(database.acc_type=='BR') & (database.list_code=='PB')]
+    br=database[database.acc_type=='BR']
+    br=br[br.list_code=='PB']
     #br=br[br.list_code=='PB']
     br_crm=pd.DataFrame()
     br_crm['Areacode']=br.mem_wstd.str.slice(0,-7)#.astype('int64')##get_areacode(br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()))
@@ -232,22 +239,23 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm['name1']=br.last_name.astype('str')
     br_crm['name2']=br.first_name.astype('str')
     br_crm['SAM_BLDNAME']=br.sam_bldname.astype('str')
-    br_crm['SAM_STNMFR']=br.sam_stnmfr.astype('str')
-    br_crm['SAM_STNAME']=br.sam_stname.astype('str')
-    br_crm['SAM_STSUBT']=br.sam_stsubt.astype('str')
-    br_crm['sam_estate']=br.sam_estate.astype('str')
+    br_crm['SAM_STNMFR']=''#br.sam_stnmfr.astype('str')
+    br_crm['SAM_STNAME']=''#br.sam_stname.astype('str')
+    br_crm['SAM_STSUBT']=''#br.sam_stsubt.astype('str')
+    br_crm['sam_estate']=''#br.sam_estate.astype('str')
     br_crm['City']=br.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     br_crm['Province']=br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    br_crm['acc_type']='BR'
     br_crm=add_product(br_crm,'BR')
     br_crm['class_code']=br.class_code
+    br_crm['class_desc']=""
 
     br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    #br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    #br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    #br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
     fix_duplicate(br_crm)
@@ -292,15 +300,17 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
     yp_crm['name1']=yp.last_name.astype('str')
     yp_crm['name2']=yp.first_name.astype('str')
     yp_crm['SAM_BLDNAME']=yp.sam_bldname.astype('str')
-    yp_crm['SAM_STNMFR']=yp.sam_stnmfr.astype('str')
-    yp_crm['SAM_STNAME']=yp.sam_stname.astype('str')
-    yp_crm['SAM_STSUBT']=yp.sam_stsubt.astype('str')
-    yp_crm['sam_estate']=yp.sam_estate.astype('str')
+    yp_crm['SAM_STNMFR']=''#yp.sam_stnmfr.astype('str')
+    yp_crm['SAM_STNAME']=''#yp.sam_stname.astype('str')
+    yp_crm['SAM_STSUBT']=''#yp.sam_stsubt.astype('str')
+    yp_crm['sam_estate']=''#yp.sam_estate.astype('str')
     yp_crm['City']=yp.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     yp_crm['Province']=yp.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    yp_crm['acc_type']='yp'
     yp_crm=add_product(yp_crm,'BR')
+    yp_crm['Product']=yp_crm.Product.str.pad(1,side='right',fillchar='YP')
     yp_crm['class_code']=yp.class_code
+    yp_crm['class_desc']=''
 
     yp_crm.name1 = yp_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     yp_crm.name2 = yp_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -431,7 +441,7 @@ def add_product(crm,acc_type):
     return crm
 
 def yp_crm_code(database):
-    classes=pd.read_csv('Company_Class.csv')
+    classes=pd.read_csv('Company_Class.csv',converters={class_code:str})
     classes.rename(columns={'name1': 'last_name', 'name2': 'first_name','SAM_STNAME':'sam_stname','SAM_BLDNAME':'sam_bldname','SAM_STNMFR':'sam_stnmfr','SAM_STSUBT':'sam_stsubt'}, inplace=True)
     classes_up=classes#.copy()
     classes_up.last_name=classes_up.last_name.str.upper()
