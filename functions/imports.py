@@ -308,8 +308,7 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
     yp_crm['Province']=yp.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    yp_crm['acc_type']='yp'
     yp_crm=add_product(yp_crm,'BR')
-    yp_crm['Product']=yp_crm.Product.str.pad(1,side='right',fillchar='Y')
-    yp_crm['Product']=yp_crm.Product.str.pad(1,side='right',fillchar='P')
+    yp_crm['Product']=yp_crm['Product'].astype('str') + 'YP'
     yp_crm['class_code']=yp.class_code
     yp_crm['class_desc']=''
 
