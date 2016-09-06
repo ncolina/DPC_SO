@@ -193,7 +193,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
     go_crm['Phone']=go.mem_wstd.str.slice(-7)
     go_crm['name1']=go.last_name.astype('str')
     go_crm['name2']=go.first_name.astype('str')
-    #go_crm['SAM_BLDNAME']=go.sam_bldname
+    go_crm['SAM_BLDNAME']=''#go.sam_bldname
     go_crm['SAM_STNMFR']=go.sam_stnmfr.astype('str')
     go_crm['SAM_STNAME']=go.sam_stname.astype('str')
     go_crm['SAM_STSUBT']=go.sam_stsubt.astype('str')
@@ -308,7 +308,7 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
     yp_crm['Province']=yp.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    yp_crm['acc_type']='yp'
     yp_crm=add_product(yp_crm,'BR')
-    yp_crm['Product']=yp_crm['Product'].astype('str') + 'YP'
+    yp_crm['Product']=yp_crm['Product'].astype('str') + 'YP '
     yp_crm['class_code']=yp.class_code
     yp_crm['class_desc']=''
 
