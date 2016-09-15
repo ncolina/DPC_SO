@@ -133,7 +133,7 @@ def update_database(update_file,database,bigbang=False):
 
 def save_database(database,filename=None):
     filename=filename or 'database_backups/database-%s.hdf5'% time.strftime('%Y-%m-%d-%H-%M-%S')
-    database.to_hdf(filename, 'database', mode='w', format='table')
+    database.to_hdf(filename, 'database', mode='w', format='fixed')
     logging.info("Database has been saved as %s in the database_backups folder", filename)
 
 #Input database as a  pandas dataframe and returns a pandas dataframe with data in CRM format
@@ -450,8 +450,8 @@ def yp_crm_code(database):
     classes_up.sam_bldname=classes_up.sam_bldname.str.upper()
     classes_up.sam_stsubt=classes_up.sam_stsubt.str.upper()
     classes_up.fillna(value='', inplace=True)
-    classes_up.Phone=classes_up.Phone.astype('int64')
-    classes_up.Areacode=classes_up.Areacode.astype('int64')
+    classes_up.Phone=classes_up.Phone.astype('float64')
+    classes_up.Areacode=classes_up.Areacode.astype('float64')
     classes_up.class_code=classes_up.class_code.astype('str')
     #classes_up = classes_up.drop(['Areacode','Product'], 1)
     database_up=database#.copy()
@@ -462,8 +462,8 @@ def yp_crm_code(database):
     database_up.sam_stsubt=database_up.sam_stsubt.str.upper()
     #database_up = database_up.drop('Product', 1)
     #database_up.update(classes_up)
-    database_up['Phone']=database_up.mem_wstd.str.slice(-7).astype('int64')
-    database_up['Areacode']=database_up.mem_wstd.str.slice(0,-7).astype('int64')
+    database_up['Phone']=database_up.mem_wstd.str.slice(-7).astype('float64')
+    database_up['Areacode']=database_up.mem_wstd.str.slice(0,-7).astype('float64')
     database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name','sam_stname','sam_bldname','sam_stnmfr','sam_stsubt'], how='inner')
     database_coded=pd.merge(database_coded,classes_up)
     #database_coded.last_name=database.last_name
