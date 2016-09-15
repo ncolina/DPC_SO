@@ -496,14 +496,15 @@ def find_similar_names(db,probability=0.6):
     return similardb.drop_duplicates()
 
 def find_exceptions(update):
-    exception_list=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\x80-\xFF]', regex=True)
-    exceptions=update[exception_list]
+    exception_list1=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\x80-\xFF]', regex=True)
+    exception_list2=update.mem_wstd.str.contains('.', regex=False)
+    exceptions=update[exception_list1 | exception_list2 ]
     filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
     to_fwf(exceptions,filename)
     logging.info('%i lines have been tagged as exceptions and have been written to %s'%(len(exceptions),filename))
     logging.debug('The following are marked as exceptions')
     logging.debug(exceptions.last_name)
-    return update[~exception_list]
+    return update[~(exception_list1|exception_list2)]
 
 def to_fwf(db,filename):
     formats=[]
