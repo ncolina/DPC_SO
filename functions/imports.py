@@ -161,8 +161,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
 
     #rr_crm.loc(rr_crm.SAM_STNAME=='' and ,)
 
-    rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x.lower())) # Only in the residential we don't look for stylized names
+    rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x.lower()))
     #rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.SAM_STNAME = rr_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.SAM_STSUBT = rr_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -197,7 +197,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
     go_crm['SAM_STNMFR']=go.sam_stnmfr.astype('str')
     go_crm['SAM_STNAME']=go.sam_stname.astype('str')
     go_crm['SAM_STSUBT']=go.sam_stsubt.astype('str')
-    go_crm['sam_estate']=go.sam_estate.astype('str')
+    go_crm['sam_estate']=''#go.sam_estate.astype('str')
     go_crm['City']=go.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     go_crm['Province']=go.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     go_crm=add_product(go_crm,'GO')
@@ -239,10 +239,10 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm['name1']=br.last_name.astype('str')
     br_crm['name2']=br.first_name.astype('str')
     br_crm['SAM_BLDNAME']=br.sam_bldname.astype('str')
-    br_crm['SAM_STNMFR']=''#br.sam_stnmfr.astype('str')
-    br_crm['SAM_STNAME']=''#br.sam_stname.astype('str')
-    br_crm['SAM_STSUBT']=''#br.sam_stsubt.astype('str')
-    br_crm['sam_estate']=''#br.sam_estate.astype('str')
+    br_crm['SAM_STNMFR']=br.sam_stnmfr.astype('str')
+    br_crm['SAM_STNAME']=br.sam_stname.astype('str')
+    br_crm['SAM_STSUBT']=br.sam_stsubt.astype('str')
+    br_crm['sam_estate']=br.sam_estate.astype('str')
     br_crm['City']=br.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     br_crm['Province']=br.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    br_crm['acc_type']='BR'
@@ -253,11 +253,25 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    #br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    #br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    #br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.sam_estate = br_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.City = br_crm.City.apply(lambda x: titlecase(x))
     br_crm.Province = br_crm.Province.apply(lambda x: titlecase(x))
+
+#remove buliding name if the same as company name
+    br_crm.loc[(br_crm.SAM_BLDNAME==br_crm.name1),'SAM_BLDNAME']=''
+# remove st information if building name exists and is not the same as the company name
+    br_crm.loc[(br_crm.SAM_BLDNAME!=''),'SAM_STNAME']=''
+    br_crm.loc[(br_crm.SAM_BLDNAME!=''),'SAM_STSUBT']=''
+    br_crm.loc[(br_crm.SAM_BLDNAME!=''),'sam_estate']=''
+    br_crm.loc[(br_crm.SAM_BLDNAME!=''),'SAM_STNMFR']=''
+
+# remove the punctuation
+    br_crm.name1=br_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
+    br_crm.name2=br_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+
+
     fix_duplicate(br_crm)
     #place orcall function here since we want LR and Lr to be duplicates
     br_crm= or_call(br_crm,multi_or=multi_or)
@@ -373,7 +387,7 @@ def or_call(crm, multi_or=False):
                 pass
 
             try:
-                crm.SAM_BLDNAME.iloc[i ]=''
+                crm.SAM_BLDNAME.iloc[i]=''
             except:
                 pass
             crm.SAM_STNMFR.iloc[i]=''
@@ -387,27 +401,30 @@ def or_call(crm, multi_or=False):
             #crm.Product.iloc[i]=''
 
             if skip == False:
-                crm.Phone.iloc[i-1]=str(prev_line.Phone)+'/'+str(line.Phone)
-                crm.Phone.iloc[i]=np.nan
-                if multi_or==False:
-                    try:
-                        if index.iloc[i-1] == False and index.iloc[i+1]==True:
-                            crm.SAM_STNAME.iloc[i+1]='Or Call'
-                        elif index.iloc[i+1]==True:
-                            crm.SAM_STNAME.iloc[i+1]=''
-                    except:
-                        pass
+                if index.iloc[i-1]==False and index.iloc[i+1]==False:
+                    crm.SAM_STNAME.iloc[i]='Or Call'
                 else:
+                    crm.Phone.iloc[i]=str(line.Phone)+'/'+str(next_line.Phone)
+                    crm.Phone.iloc[i+1]=np.nan
+                    if multi_or==False:
+                        try:
+                            if index.iloc[i-1] == False: #and index.iloc[i+1]==True:
+                                crm.SAM_STNAME.iloc[i]='Or Call'
+                            else:#if index.iloc[i+1]==True:
+                                crm.SAM_STNAME.iloc[i]=''
+                        except:
+                            pass
+                    else:
+                        #try:
+                        #    if index.iloc[i+1]==True:
+                        crm.SAM_STNAME.iloc[i]='Or Call'
+                #        except:
+                #            pass
                     try:
-                        if index.iloc[i+1]==True:
-                            crm.SAM_STNAME.iloc[i+1]='Or Call'
+                        if index.iloc[i+1] == True:
+                            skip =True
                     except:
                         pass
-                try:
-                    if index.iloc[i+1] == True:
-                        skip =True
-                except:
-                    pass
             else:
                 skip = False
     return  crm[crm.Phone.notnull()]
@@ -426,6 +443,8 @@ def apply_abbr(crm):
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
     crm.drop_duplicates('Phone',keep='last',inplace=True)
+    crm.name1=crm.name1.str.replace('  ', ' ')
+    crm.name2=crm.name2.str.replace('  ', ' ')
 
     #make copy to change case and strip punctuation then check for duplicates. Use this as an index to remove from final crm output
 
