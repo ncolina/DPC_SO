@@ -31,10 +31,10 @@ Config.read("config/input_format")
 #Config.read("config/areacodes") # NOT NEEDED
 Config.read("config/prov_abbreviations")
 Config.read("config/city_abbreviations")
-
+Config.read("config/sam_stsubt")
 prov_abbr=ConfigSectionMap('prov_abbreviations')
 city_abbr=ConfigSectionMap('city_abbreviations')
-
+stsubt_abbr=ConfigSectionMap('sam_stsubt')
 #codes=ConfigSectionMap('areacodes') #NOT NEEEDED
 crmout=open('config/crm_format', 'r')
 
@@ -169,7 +169,13 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.City = rr_crm.City.apply(lambda x: titlecase(x))
     rr_crm.Province = rr_crm.Province.apply(lambda x: titlecase(x))
-    #or call may not be necessary here
+    rr_crm.SAM_STSUBT=rr_crm.SAM_STSUBT.apply(lambda x : expand_stsubt(x))
+
+    titles_file =open("config/titles",'r')
+    TITLES = str(titles_file.read().rstrip('\n'))
+    rr_crm.name1=rr_crm.name1.str.replace(r'(%s)'%TITLES,'')
+    rr_crm=remove_st(rr_crm)
+
     fix_duplicate(rr_crm)
     rr_crm= or_call(rr_crm,multi_or=multi_or)
     if abbr == True:
@@ -207,15 +213,25 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
 
 
     #    go_crm['acc_type']='GO'
-    go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
+    go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
     go_crm.SAM_BLDNAME = ''#go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.sam_estate = go_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.City = go_crm.City.apply(lambda x: titlecase(x))
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
+
+# remove the punctuation
+    go_crm.name1=go_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
+    go_crm.name2=go_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+
+    go_crm=expand_abbr(go_crm)
+    go_crm=remove_st(go_crm)
+
     fix_duplicate(go_crm)
+    go_crm=remove_st(go_crm)
+
     go_crm= or_call(go_crm,multi_or=multi_or)
     if abbr == True:
         apply_abbr(go_crm)
@@ -250,8 +266,8 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm['class_code']=br.class_code
     br_crm['class_desc']=""
 
-    br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
+    br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
     br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -271,6 +287,8 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm.name1=br_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
     br_crm.name2=br_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
 
+    br_crm=expand_abbr(br_crm)
+    br_crm=remove_st(br_crm)
 
     fix_duplicate(br_crm)
     #place orcall function here since we want LR and Lr to be duplicates
@@ -321,19 +339,34 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
     yp_crm['City']=yp.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     yp_crm['Province']=yp.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    yp_crm['acc_type']='yp'
-    yp_crm=add_product(yp_crm,'BR')
-    yp_crm['Product']=yp_crm['Product'].astype('str').str[:-2] + 'YP'
+    yp_crm=add_product(yp_crm,'YP')
+    #yp_crm['Product']=yp_crm['Product'].astype('str').str[:-2] + 'YP'
     yp_crm['class_code']=yp.class_code.astype('str')
     yp_crm['class_desc']=''
 
-    yp_crm.name1 = yp_crm.name1.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
-    yp_crm.name2 = yp_crm.name2.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    yp_crm.name1 = yp_crm.name1.apply(lambda x: titlecase(x.lower())) #if x.isupper() else x)
+    yp_crm.name2 = yp_crm.name2.apply(lambda x: titlecase(x.lower())) #if x.isupper() else x)
     yp_crm.SAM_BLDNAME = yp_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     yp_crm.SAM_STNAME = yp_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     yp_crm.SAM_STSUBT = yp_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     yp_crm.sam_estate = yp_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     yp_crm.City = yp_crm.City.apply(lambda x: titlecase(x))
     yp_crm.Province = yp_crm.Province.apply(lambda x: titlecase(x))
+
+#remove buliding name if the same as company name
+    yp_crm.loc[(yp_crm.SAM_BLDNAME==yp_crm.name1),'SAM_BLDNAME']=''
+# remove st information if building name exists and is not the same as the company name
+    yp_crm.loc[(yp_crm.SAM_BLDNAME!=''),'SAM_STNAME']=''
+    yp_crm.loc[(yp_crm.SAM_BLDNAME!=''),'SAM_STSUBT']=''
+    yp_crm.loc[(yp_crm.SAM_BLDNAME!=''),'sam_estate']=''
+    yp_crm.loc[(yp_crm.SAM_BLDNAME!=''),'SAM_STNMFR']=''
+
+# remove the punctuation
+    yp_crm.name1=yp_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
+    yp_crm.name2=yp_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+
+    yp_crm=expand_abbr(yp_crm)
+    yp_crm=remove_st(yp_crm)
     fix_duplicate(yp_crm)
     yp_crm= or_call(yp_crm,multi_or=multi_or)
     if abbr == True:
@@ -372,6 +405,12 @@ def province2abr(arg):
 def city2abr(arg):
     return city_abbr.get(arg.lower(),arg)
 #note: pdf if not clear on the placement of the or call in the crm for now it will be put in the city
+def expand_stsubt(arg):
+    return stsubt_abbr.get(arg.lower(),arg)
+
+def remove_st(crm):
+    crm.SAM_STSUBT[~(crm.SAM_STNAME.astype('str').str[0].astype('str').str.isnumeric())&(crm.SAM_STSUBT.str.contains('St',case=0,na=False))]=''
+    return crm
 
 def or_call(crm, multi_or=False):
     crm.reset_index(drop=True,inplace=True)
@@ -439,6 +478,17 @@ def get_newest_db():
 def apply_abbr(crm):
     crm.Province=crm.Province.apply(lambda x : province2abr(x))
     crm.City=crm.City.apply(lambda x : city2abr(x))
+    return crm
+
+def expand_abbr(crm):
+    crm.name1=crm.name1.str.replace(r'(corp)(?=\W|$)', 'Corporation', case=False)
+    crm.name1=crm.name1.str.replace(r'(inc)(?=\W|$)', 'Incorporated', case=False)
+    crm.name1=crm.name1.str.replace(r'(co)(?=\W|$)', 'Company', case=False)
+    crm.name1=crm.name1.str.replace(r'(?<!\w)&(?!\w)', 'and', case=False)
+    crm.name1=crm.name1.str.replace(r'(phil)(?=\W|$)', 'Philippine', case=False)
+    crm.name1=crm.name1.str.replace(r'(phils)(?=\W|$)', 'Philippines', case=False)
+    crm.name1=crm.name1.str.replace(r"(int'l)(?=\W|$)", 'International', case=False)
+    crm.SAM_STSUBT=crm.SAM_STSUBT.apply(lambda x : expand_stsubt(x))
     return crm
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.

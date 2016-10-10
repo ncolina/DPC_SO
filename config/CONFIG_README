@@ -1,0 +1,8 @@
+alwaysCAPS defines the words in names that should always be capitalized
+areacodes XXX no longer NEEDED
+city_abbreviations defines the abbreviations used in cities
+prov_abbreviations defines the provincial abbreviations
+input_format defines the lengths of the fields in the input file
+sam_stname sets the expansion or abbreviation of street subtitle
+small_words sets what is defined as a small word and shouldn't be capitalized usually
+titles defines what should be removed from residential names
