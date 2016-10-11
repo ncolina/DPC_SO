@@ -174,6 +174,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     titles_file =open("config/titles",'r')
     TITLES = str(titles_file.read().rstrip('\n'))
     rr_crm.name1=rr_crm.name1.str.replace(r'(%s)'%TITLES,'')
+    rr_crm.name2=rr_crm.name2.str.replace(r'(%s)'%TITLES,'')
+
     rr_crm=remove_st(rr_crm)
 
     fix_duplicate(rr_crm)
@@ -332,10 +334,10 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
     yp_crm['name1']=yp.last_name.astype('str')
     yp_crm['name2']=yp.first_name.astype('str')
     yp_crm['SAM_BLDNAME']=yp.sam_bldname.astype('str')
-    yp_crm['SAM_STNMFR']=''#yp.sam_stnmfr.astype('str')
-    yp_crm['SAM_STNAME']=''#yp.sam_stname.astype('str')
-    yp_crm['SAM_STSUBT']=''#yp.sam_stsubt.astype('str')
-    yp_crm['sam_estate']=''#yp.sam_estate.astype('str')
+    yp_crm['SAM_STNMFR']=yp.sam_stnmfr.astype('str')
+    yp_crm['SAM_STNAME']=yp.sam_stname.astype('str')
+    yp_crm['SAM_STSUBT']=yp.sam_stsubt.astype('str')
+    yp_crm['sam_estate']=yp.sam_estate.astype('str')
     yp_crm['City']=yp.distribution_code.str.split('    ',1).str.get(1).apply(lambda x : x.strip()).str.upper()
     yp_crm['Province']=yp.distribution_code.str.split('    ',1).str.get(0).apply(lambda x : x.strip()).str.upper()
     #    yp_crm['acc_type']='yp'
