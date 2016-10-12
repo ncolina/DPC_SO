@@ -176,6 +176,9 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     rr_crm.name1=rr_crm.name1.str.replace(r'(%s)'%TITLES,'')
     rr_crm.name2=rr_crm.name2.str.replace(r'(%s)'%TITLES,'')
 
+    rr_crm.name1=rr_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
+    rr_crm.name2=rr_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+
     rr_crm=remove_st(rr_crm)
 
     fix_duplicate(rr_crm)

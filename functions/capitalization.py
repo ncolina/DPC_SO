@@ -20,7 +20,7 @@ PUNCT = r"""!"#$%&'‘()*+,\-./:;?@[\\\]_`{|}~"""
 
 
 SMALL_WORDS = re.compile(r'^(%s)$' % SMALL, re.I)
-INLINE_PERIOD = re.compile(r'[a-z][.][a-z]', re.I)
+INLINE_PERIOD = re.compile(r'^(\w[a-z][.][a-z]\w)', re.I)
 UC_ELSEWHERE = re.compile(r'[%s]*?[a-zA-Z]+[A-Z]+?' % PUNCT)
 CAPFIRST = re.compile(r"^[%s]*?([A-Za-z])" % PUNCT)
 SMALL_FIRST = re.compile(r'^([%s]*)(%s)\b' % (PUNCT, SMALL), re.I)
@@ -31,7 +31,7 @@ ALL_CAPS = re.compile(r'^[A-Z\s%s]+$' % PUNCT)
 UC_INITIALS = re.compile(r"^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$")
 MAC_MC = re.compile(r"^([Mm]a?c)(\w+)")
 ALWAYS_CAPS = re.compile(r'^(%s)$' % CAPS, re.I)
-
+INITIALS = re.compile(r"^(?:[a-zA-Z]{1}\.{1}|[a-zA-Z]{1}\.{1}[a-zA-Z]{1})+$")
 def titlecase(text):
 
     """
@@ -57,7 +57,9 @@ def titlecase(text):
                     continue
                 else:
                     word = word.lower()
-
+            if INITIALS.match(word):
+                tc_line.append(word.upper())
+                continue
             if APOS_SECOND.match(word):
                 word = word.replace(word[0], word[0].upper())
                 word = word.replace(word[2], word[2].upper())
