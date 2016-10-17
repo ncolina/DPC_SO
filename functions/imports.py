@@ -176,8 +176,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     rr_crm.name1=rr_crm.name1.str.replace(r'(%s)'%TITLES,'')
     rr_crm.name2=rr_crm.name2.str.replace(r'(%s)'%TITLES,'')
 
-    rr_crm.name1=rr_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
-    rr_crm.name2=rr_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+    rr_crm.name1=rr_crm.name1.str.replace(r'[.,;:]',' ')
+    rr_crm.name2=rr_crm.name2.str.replace(r'[.,;:]',' ')
 
     rr_crm=remove_st(rr_crm)
 
@@ -228,8 +228,8 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
     go_crm.Province = go_crm.Province.apply(lambda x: titlecase(x))
 
 # remove the punctuation
-    go_crm.name1=go_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
-    go_crm.name2=go_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+    go_crm.name1=go_crm.name1.str.replace(r'[.,;:]',' ')
+    go_crm.name2=go_crm.name2.str.replace(r'[.,;:]',' ')
 
     go_crm=expand_abbr(go_crm)
     go_crm=remove_st(go_crm)
@@ -289,8 +289,8 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm.loc[(br_crm.SAM_BLDNAME!=''),'SAM_STNMFR']=''
 
 # remove the punctuation
-    br_crm.name1=br_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
-    br_crm.name2=br_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+    br_crm.name1=br_crm.name1.str.replace(r'[.,;:]',' ')
+    br_crm.name2=br_crm.name2.str.replace(r'[.,;:]',' ')
 
     br_crm=expand_abbr(br_crm)
     br_crm=remove_st(br_crm)
@@ -367,8 +367,8 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
     yp_crm.loc[(yp_crm.SAM_BLDNAME!=''),'SAM_STNMFR']=''
 
 # remove the punctuation
-    yp_crm.name1=yp_crm.name1.str.replace(r'[.,]\B|\s[.,]','')
-    yp_crm.name2=yp_crm.name2.str.replace(r'[.,]\B|\s[.,]','')
+    yp_crm.name1=yp_crm.name1.str.replace(r'[.,;:]',' ')
+    yp_crm.name2=yp_crm.name2.str.replace(r'[.,;:]',' ')
 
     yp_crm=expand_abbr(yp_crm)
     yp_crm=remove_st(yp_crm)
@@ -498,8 +498,8 @@ def expand_abbr(crm):
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
     crm.drop_duplicates('Phone',keep='last',inplace=True)
-    crm.name1=crm.name1.str.replace('  ', ' ')
-    crm.name2=crm.name2.str.replace('  ', ' ')
+    crm.name1=crm.name1.str.replace(r'\s{2,10}', ' ')
+    crm.name2=crm.name2.str.replace(r'\s{2,10}', ' ')
 
     #make copy to change case and strip punctuation then check for duplicates. Use this as an index to remove from final crm output
 
