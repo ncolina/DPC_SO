@@ -44,6 +44,7 @@ def titlecase(text):
     the New York Times Manual of Style, plus 'vs' and 'v'.
 
     """
+    text=string.replace(text, '\xd1','\xf1')
     lines = re.split('[\r\n]+', text)
     processed = []
     for line in lines:

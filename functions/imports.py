@@ -59,6 +59,7 @@ def update_database(update_file,database,bigbang=False):
                    #error_bad_lines=True,
                    #dtype='object',
                    index_col=None,
+                   encoding='U8'
                   )
     update.fillna('', inplace=True)
 
@@ -512,6 +513,13 @@ def add_product(crm,acc_type):
     crm.Areacode=crm.Areacode.astype('int64')
     crm = pd.merge(crm,product, on=['Province','Areacode'], how='left')
     crm.Areacode=crm.Areacode.astype('object')
+
+    #check if the product is blank. if so, output line info
+    no_product=crm[crm.Product=='']
+    if len(no_product)>0:
+        logging.info('There are %s entries without products', len(no_product))
+        logging.debug('The following are the entries without products:')
+        logging.debug(no_product)
     return crm
 
 def yp_crm_code(database):
@@ -570,7 +578,7 @@ def find_similar_names(db,probability=0.6):
     return similardb.drop_duplicates()
 
 def find_exceptions(update):
-    exception_list1=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\x80-\xFF]', regex=True)
+    exception_list1=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\xA0-\xD0]|[\xD2-\xF0]|[\xF2-\xFF]', regex=True)
     exception_list2=update.mem_wstd.str.contains('.', regex=False)
     exceptions=update[exception_list1 | exception_list2 ]
     filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
