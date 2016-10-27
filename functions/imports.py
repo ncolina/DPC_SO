@@ -578,7 +578,7 @@ def find_similar_names(db,probability=0.6):
     return similardb.drop_duplicates()
 
 def find_exceptions(update):
-    exception_list1=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\xA0-\xD0]|[\xD2-\xF0]|[\xF2-\xFF]', regex=True)
+    exception_list1=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\xA0-\xC8]|[\xCA-\xD0]|[\xD2-\xE8]|[\xEA-\xF0]|[\xF2-\xFF]', regex=True)
     exception_list2=update.mem_wstd.str.contains('.', regex=False)
     exceptions=update[exception_list1 | exception_list2 ]
     filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')

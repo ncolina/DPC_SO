@@ -45,6 +45,8 @@ def titlecase(text):
 
     """
     text=string.replace(text, '\xd1','\xf1')
+    text=string.replace(text, '\xc9','\xe9')
+
     lines = re.split('[\r\n]+', text)
     processed = []
     for line in lines:
