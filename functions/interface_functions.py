@@ -33,6 +33,7 @@ def crm_prompt():
         print 'That file does not exist.'
     yellowpages=raw_input('YellowPages? Y/N [Default:N] ') or 'N'
     ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]: ') or 'Y'
+    name_sub_choice=raw_input('Should company names be expanded? Y/N [Default Y]: ') or 'Y'
     mult_or=raw_input('"Multiple or"/or "single or". M/S [Default S]: ') or "S"
     name='crm-%s.csv'% time.strftime('%Y-%m-%d-%H-%M-%S')
     filename=raw_input('What would you like the base name for the exported crm to be? [Default: %s]'%name) or name
@@ -45,16 +46,20 @@ def crm_prompt():
         abbr=True
     else:
         abbr = False
+    if name_sub_choice == 'Y' or name_sub_choice =='y': #if expansion is not desired then it should be said by having any othe input except Y/y
+        name_sub=True
+    else:
+        name_sub = False
     if yellowpages=='y' or yellowpages=='Y':
-        create_yellowpages_crm(database, filename=filename, abbr=abbr,multi_or=multi_or)
+        create_yellowpages_crm(database, filename=filename, abbr=abbr,multi_or=multi_or,name_sub=name_sub)
     else:# yellowpages == 'N' or yellowpages =='n':
         choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
         if choice == 'ALL':
-            create_crm_csv(database, filename=filename, abbr=abbr,multi_or=multi_or)
+            create_crm_csv(database, filename=filename, abbr=abbr,multi_or=multi_or , name_sub=name_sub)
         elif choice == 'GO':
-            create_government_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or)
+            create_government_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or, name_sub=name_sub)
         elif choice == 'BR':
-            create_buisness_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or)
+            create_buisness_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or, name_sub=name_sub)
         elif choice == 'RR':
             create_residential_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or)
         else:

@@ -196,7 +196,7 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     logging.info('RR crm DONE')
     return rr_crm
 
-def create_government_crm(database,export=False,filename=None,abbr=True,multi_or=False):
+def create_government_crm(database,export=False,filename=None,abbr=True,multi_or=False,name_sub=True):
     go=database[database.acc_type=='GO']
     go=go[go.list_code=='PB']
     #go=go[go.list_code=='PB']
@@ -231,8 +231,8 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
 # remove the punctuation
     go_crm.name1=go_crm.name1.str.replace(r'[.,;:]',' ')
     go_crm.name2=go_crm.name2.str.replace(r'[.,;:]',' ')
-
-    go_crm=expand_abbr(go_crm)
+    if name_sub==True:
+        go_crm=expand_abbr(go_crm)
     go_crm=remove_st(go_crm)
 
     fix_duplicate(go_crm)
@@ -251,7 +251,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
 
     return go_crm
 
-def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=False):
+def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=False,name_sub=True):
     br=database[database.acc_type=='BR']
     br=br[br.list_code=='PB']
     #br=br[br.list_code=='PB']
@@ -292,8 +292,8 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
 # remove the punctuation
     br_crm.name1=br_crm.name1.str.replace(r'[.,;:]',' ')
     br_crm.name2=br_crm.name2.str.replace(r'[.,;:]',' ')
-
-    br_crm=expand_abbr(br_crm)
+    if name_sub==True:
+        br_crm=expand_abbr(br_crm)
     br_crm=remove_st(br_crm)
 
     fix_duplicate(br_crm)
@@ -322,14 +322,14 @@ def create_crm(database,filename=None):
     writer.save()
     logging.info('CRM saved in xlsx format with file name %s',filename)
 
-def create_crm_csv(database,filename=None,abbr=True,multi_or=False):
+def create_crm_csv(database,filename=None,abbr=True,multi_or=False,name_sub=True):
     filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
     create_residential_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or)
-    create_government_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or)
-    create_buisness_crm(database,export=True,filename=filename,abbr=abbr, multi_or=multi_or)
+    create_government_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or,name_sub=name_sub)
+    create_buisness_crm(database,export=True,filename=filename,abbr=abbr, multi_or=multi_or,name_sub=name_sub)
     logging.info('CRM saved in csv format with file names %s',filename)
 
-def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
+def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False,name_sub=True):
     yp=yp_crm_code(database)
     #br=br[br.list_code=='PB']
     yp_crm=pd.DataFrame()
@@ -370,8 +370,8 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False):
 # remove the punctuation
     yp_crm.name1=yp_crm.name1.str.replace(r'[.,;:]',' ')
     yp_crm.name2=yp_crm.name2.str.replace(r'[.,;:]',' ')
-
-    yp_crm=expand_abbr(yp_crm)
+    if name_sub==True:
+        yp_crm=expand_abbr(yp_crm)
     yp_crm=remove_st(yp_crm)
     fix_duplicate(yp_crm)
     yp_crm= or_call(yp_crm,multi_or=multi_or)
@@ -487,13 +487,13 @@ def apply_abbr(crm):
     return crm
 
 def expand_abbr(crm):
-    crm.name1=crm.name1.str.replace(r'(corp)(?=\W|$)', 'Corporation', case=False)
-    crm.name1=crm.name1.str.replace(r'(inc)(?=\W|$)', 'Incorporated', case=False)
-    crm.name1=crm.name1.str.replace(r'(co)(?=\W|$)', 'Company', case=False)
+    crm.name1=crm.name1.str.replace(r'(?<!\w)(corp)(?=\W|$)', 'Corporation', case=False)
+    crm.name1=crm.name1.str.replace(r'(?<!\w)(inc)(?=\W|$)', 'Incorporated', case=False)
+    crm.name1=crm.name1.str.replace(r'(?<!\w)(co)(?=\W|$)', 'Company', case=False)
     crm.name1=crm.name1.str.replace(r'(?<!\w)&(?!\w)', 'and', case=False)
-    crm.name1=crm.name1.str.replace(r'(phil)(?=\W|$)', 'Philippine', case=False)
-    crm.name1=crm.name1.str.replace(r'(phils)(?=\W|$)', 'Philippines', case=False)
-    crm.name1=crm.name1.str.replace(r"(int'l)(?=\W|$)", 'International', case=False)
+    crm.name1=crm.name1.str.replace(r'(?<!\w)(phil)(?=\W|$)', 'Philippine', case=False)
+    crm.name1=crm.name1.str.replace(r'(?<!\w)(phils)(?=\W|$)', 'Philippines', case=False)
+    crm.name1=crm.name1.str.replace(r"(?<!\w)(int'l)(?=\W|$)", 'International', case=False)
     crm.SAM_STSUBT=crm.SAM_STSUBT.apply(lambda x : expand_stsubt(x))
     return crm
 
@@ -578,7 +578,7 @@ def find_similar_names(db,probability=0.6):
     return similardb.drop_duplicates()
 
 def find_exceptions(update):
-    exception_list1=update.last_name.str.contains(r'^[-!$%^&*()_+|~=`"{}[\]:/;<>?,.@#]|^$|[\xA0-\xC8]|[\xCA-\xD0]|[\xD2-\xE8]|[\xEA-\xF0]|[\xF2-\xFF]', regex=True)
+    exception_list1=update.last_name.str.contains(r'^[-!$%^&*_+|~=`"{}[\]:/;<>?,.@#]|^$|[\xA0-\xC8]|[\xCA-\xD0]|[\xD2-\xE8]|[\xEA-\xF0]|[\xF2-\xFF]', regex=True)
     exception_list2=update.mem_wstd.str.contains('.', regex=False)
     exceptions=update[exception_list1 | exception_list2 ]
     filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
