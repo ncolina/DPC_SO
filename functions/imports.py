@@ -32,9 +32,11 @@ Config.read("config/input_format")
 Config.read("config/prov_abbreviations")
 Config.read("config/city_abbreviations")
 Config.read("config/sam_stsubt")
+Config.read("config/sam_stname-abbr")
 prov_abbr=ConfigSectionMap('prov_abbreviations')
 city_abbr=ConfigSectionMap('city_abbreviations')
 stsubt_abbr=ConfigSectionMap('sam_stsubt')
+stname_abbr=ConfigSectionMap('sam_stname-abbr')
 #codes=ConfigSectionMap('areacodes') #NOT NEEEDED
 crmout=open('config/crm_format', 'r')
 
@@ -417,6 +419,7 @@ def expand_stsubt(arg):
 
 def remove_st(crm):
     crm.SAM_STSUBT[~(crm.SAM_STNAME.astype('str').str[0].astype('str').str.isnumeric())&(crm.SAM_STSUBT.str.contains('St',case=0,na=False))]=''
+    crm.sam_estate[~(crm.SAM_STNAME=='')]=''
     return crm
 
 def or_call(crm, multi_or=False):
@@ -485,6 +488,8 @@ def get_newest_db():
 def apply_abbr(crm):
     crm.Province=crm.Province.apply(lambda x : province2abr(x))
     crm.City=crm.City.apply(lambda x : city2abr(x))
+    for key, value in stname_abbr.iteritems():
+        crm.SAM_STNAME=crm.SAM_STNAME.str.replace(r'(?<!\w)({0})(?=\W|$)'.format(key), value, case=False)
     return crm
 
 def expand_abbr(crm):
