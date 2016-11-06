@@ -532,7 +532,6 @@ def yp_crm_code(database):
     classes=pd.read_csv('Company_Class.csv',converters={'class_code':str})
     classes.rename(columns={'name1': 'last_name', 'name2': 'first_name','SAM_STNAME':'sam_stname','SAM_BLDNAME':'sam_bldname','SAM_STNMFR':'sam_stnmfr','SAM_STSUBT':'sam_stsubt'}, inplace=True)
     classes_up=classes#.copy()
-    classes_up.fillna(value='', inplace=True)
     classes_up.last_name=classes_up.last_name.str.upper()
     classes_up.first_name=classes_up.first_name.str.upper()
     classes_up.sam_stname=classes_up.sam_stname.str.upper()
@@ -541,6 +540,8 @@ def yp_crm_code(database):
     classes_up.Phone=classes_up.Phone.astype('float64')
     classes_up.Areacode=classes_up.Areacode.astype('float64')
     classes_up.class_code=classes_up.class_code.astype('str')
+    classes_up.fillna(value='', inplace=True)
+
     #classes_up = classes_up.drop(['Areacode','Product'], 1)
     database_up=database#.copy()
     database_up.last_name=database_up.last_name.str.upper()
