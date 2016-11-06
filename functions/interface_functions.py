@@ -32,12 +32,17 @@ def crm_prompt():
             break
         print 'That file does not exist.'
     yellowpages=raw_input('YellowPages? Y/N [Default:N] ') or 'N'
+    cap_choice=raw_input('Should capitalization of names and streets be fixed? Y/N [Default Y]: ')or 'Y'
     ab_choice=raw_input('Would you like to substitue in abbreviations? Y/N [Default Y]: ') or 'Y'
     name_sub_choice=raw_input('Should company names be expanded? Y/N [Default Y]: ') or 'Y'
     mult_or=raw_input('"Multiple or"/or "single or". M/S [Default S]: ') or "S"
     name='crm-%s.csv'% time.strftime('%Y-%m-%d-%H-%M-%S')
     filename=raw_input('What would you like the base name for the exported crm to be? [Default: %s]'%name) or name
     database=get_database(dbfile)
+    if cap_choice=="Y" or cap_choice=='y':
+        cap=True
+    else:
+        cap=False
     if mult_or=="M" or mult_or=='m':
         multi_or=True
     else:
@@ -51,17 +56,17 @@ def crm_prompt():
     else:
         name_sub = False
     if yellowpages=='y' or yellowpages=='Y':
-        create_yellowpages_crm(database, filename=filename, abbr=abbr,multi_or=multi_or,name_sub=name_sub)
+        create_yellowpages_crm(database, filename=filename, abbr=abbr,multi_or=multi_or,name_sub=name_sub,cap=cap)
     else:# yellowpages == 'N' or yellowpages =='n':
         choice=raw_input('What account type do you want? ALL, GO, BR or RR [Default ALL]:') or 'ALL'
         if choice == 'ALL':
-            create_crm_csv(database, filename=filename, abbr=abbr,multi_or=multi_or , name_sub=name_sub)
+            create_crm_csv(database, filename=filename, abbr=abbr,multi_or=multi_or , name_sub=name_sub,cap=cap)
         elif choice == 'GO':
-            create_government_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or, name_sub=name_sub)
+            create_government_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or, name_sub=name_sub,cap=cap)
         elif choice == 'BR':
-            create_buisness_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or, name_sub=name_sub)
+            create_buisness_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or, name_sub=name_sub, cap=cap)
         elif choice == 'RR':
-            create_residential_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or)
+            create_residential_crm(database, filename=filename, export=True,abbr=abbr,multi_or=multi_or, cap=cap)
         else:
             print "Invalid input!"
 

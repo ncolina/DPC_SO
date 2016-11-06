@@ -140,7 +140,7 @@ def save_database(database,filename=None):
 #Input database as a  pandas dataframe and returns a pandas dataframe with data in CRM format
 #Specify export = True if an excel export is required, in this case the function returns nothing
 
-def create_residential_crm(database,export=False,filename=None,abbr=True,multi_or=False):
+def create_residential_crm(database,export=False,filename=None,abbr=True,multi_or=False,cap=True):
     rr=database[database.acc_type=='RR']
     rr=rr[rr.list_code=='PB']
     #rr=rr[rr.list_code=='PB']
@@ -161,10 +161,10 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     rr_crm['class_desc']=''
 
     #rr_crm.loc(rr_crm.SAM_STNAME=='' and ,)
-
-    rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x.lower())) # Only in the residential we don't look for stylized names
-    rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x.lower()))
-    #rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
+    if cap== True:
+        rr_crm.name1 = rr_crm.name1.apply(lambda x: titlecase(x.lower())) # Only in the residential we don't look for stylized names
+        rr_crm.name2 = rr_crm.name2.apply(lambda x: titlecase(x.lower()))
+        #rr_crm.SAM_BLDNAME = rr_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.SAM_STNAME = rr_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.SAM_STSUBT = rr_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     rr_crm.sam_estate = rr_crm.sam_estate.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -196,7 +196,7 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
     logging.info('RR crm DONE')
     return rr_crm
 
-def create_government_crm(database,export=False,filename=None,abbr=True,multi_or=False,name_sub=True):
+def create_government_crm(database,export=False,filename=None,abbr=True,multi_or=False,name_sub=True, cap=True):
     go=database[database.acc_type=='GO']
     go=go[go.list_code=='PB']
     #go=go[go.list_code=='PB']
@@ -219,8 +219,9 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
 
 
     #    go_crm['acc_type']='GO'
-    go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
-    go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
+    if cap == True:
+        go_crm.name1 = go_crm.name1.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
+        go_crm.name2 = go_crm.name2.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
     go_crm.SAM_BLDNAME = ''#go_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STNAME = go_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     go_crm.SAM_STSUBT = go_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -251,7 +252,7 @@ def create_government_crm(database,export=False,filename=None,abbr=True,multi_or
 
     return go_crm
 
-def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=False,name_sub=True):
+def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=False,name_sub=True,cap=True):
     br=database[database.acc_type=='BR']
     br=br[br.list_code=='PB']
     #br=br[br.list_code=='PB']
@@ -271,9 +272,9 @@ def create_buisness_crm(database,export=False,filename=None,abbr=True,multi_or=F
     br_crm=add_product(br_crm,'BR')
     br_crm['class_code']=br.class_code
     br_crm['class_desc']=""
-
-    br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
-    br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
+    if cap==True:
+        br_crm.name1 = br_crm.name1.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
+        br_crm.name2 = br_crm.name2.apply(lambda x: titlecase(x.lower())) # if x.isupper() else x)
     br_crm.SAM_BLDNAME = br_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.SAM_STNAME = br_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     br_crm.SAM_STSUBT = br_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
@@ -322,14 +323,14 @@ def create_crm(database,filename=None):
     writer.save()
     logging.info('CRM saved in xlsx format with file name %s',filename)
 
-def create_crm_csv(database,filename=None,abbr=True,multi_or=False,name_sub=True):
+def create_crm_csv(database,filename=None,abbr=True,multi_or=False,name_sub=True,cap=True):
     filename=filename or'crm_%s.csv' % time.strftime('%Y-%m-%d-%H-%M-%S')
-    create_residential_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or)
-    create_government_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or,name_sub=name_sub)
-    create_buisness_crm(database,export=True,filename=filename,abbr=abbr, multi_or=multi_or,name_sub=name_sub)
+    create_residential_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or,cap=cap)
+    create_government_crm(database,export=True,filename=filename,abbr=abbr,multi_or=multi_or,name_sub=name_sub,cap=cap)
+    create_buisness_crm(database,export=True,filename=filename,abbr=abbr, multi_or=multi_or,name_sub=name_sub,cap=cap)
     logging.info('CRM saved in csv format with file names %s',filename)
 
-def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False,name_sub=True):
+def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False,name_sub=True,cap=True):
     yp=yp_crm_code(database)
     #br=br[br.list_code=='PB']
     yp_crm=pd.DataFrame()
@@ -349,9 +350,9 @@ def create_yellowpages_crm(database,filename=None,abbr=True,multi_or=False,name_
     #yp_crm['Product']=yp_crm['Product'].astype('str').str[:-2] + 'YP'
     yp_crm['class_code']=yp.class_code.astype('str')
     yp_crm['class_desc']=''
-
-    yp_crm.name1 = yp_crm.name1.apply(lambda x: titlecase(x.lower())) #if x.isupper() else x)
-    yp_crm.name2 = yp_crm.name2.apply(lambda x: titlecase(x.lower())) #if x.isupper() else x)
+    if cap==True:
+        yp_crm.name1 = yp_crm.name1.apply(lambda x: titlecase(x.lower())) #if x.isupper() else x)
+        yp_crm.name2 = yp_crm.name2.apply(lambda x: titlecase(x.lower())) #if x.isupper() else x)
     yp_crm.SAM_BLDNAME = yp_crm.SAM_BLDNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     yp_crm.SAM_STNAME = yp_crm.SAM_STNAME.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
     yp_crm.SAM_STSUBT = yp_crm.SAM_STSUBT.apply(lambda x: titlecase(x.lower()) if x.isupper() else x)
