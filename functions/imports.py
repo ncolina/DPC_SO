@@ -490,6 +490,8 @@ def apply_abbr(crm):
     crm.City=crm.City.apply(lambda x : city2abr(x))
     for key, value in stname_abbr.iteritems():
         crm.SAM_STNAME=crm.SAM_STNAME.str.replace(r'(?<!\w)({0})(?=\W|$)'.format(key), value, case=False)
+        crm.SAM_BLDNAME=crm.SAM_BLDNAME.str.replace(r'(?<!\w)({0})(?=\W|$)'.format(key), value, case=False)
+
     return crm
 
 def expand_abbr(crm):
