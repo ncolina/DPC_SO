@@ -44,8 +44,7 @@ def titlecase(text):
     the New York Times Manual of Style, plus 'vs' and 'v'.
 
     """
-    text=string.replace(text, '\xd1','\xf1')
-    text=string.replace(text, '\xc9','\xe9')
+
 
     lines = re.split('[\r\n]+', text)
     processed = []
@@ -109,7 +108,8 @@ def titlecase(text):
             m.group(1),
             m.group(2).capitalize()
         ), result)
-
+        result=string.replace(result, '\xd1','\xf1')
+        result=string.replace(result, '\xc9','\xe9')
         processed.append(result)
 
     return "\n".join(processed)
