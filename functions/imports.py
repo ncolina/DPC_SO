@@ -176,8 +176,8 @@ def create_residential_crm(database,export=False,filename=None,abbr=True,multi_o
 
     titles_file =open("config/titles",'r')
     TITLES = str(titles_file.read().rstrip('\n'))
-    rr_crm.name1=rr_crm.name1.str.replace(r'(%s)'%TITLES,'')
-    rr_crm.name2=rr_crm.name2.str.replace(r'(%s)'%TITLES,'')
+    rr_crm.name1=rr_crm.name1.str.replace(r'(%s)\W'%TITLES,'')
+    rr_crm.name2=rr_crm.name2.str.replace(r'(%s)\W'%TITLES,'')
 
     rr_crm.name1=rr_crm.name1.str.replace(r'[.,;:]',' ')
     rr_crm.name2=rr_crm.name2.str.replace(r'[.,;:]',' ')
