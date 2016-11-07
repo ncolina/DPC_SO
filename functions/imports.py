@@ -87,31 +87,31 @@ def update_database(update_file,database,bigbang=False):
     IR=update[update.so_type == 'IR']
     CL=update[update.so_type == 'CL']
     NONE=update[update.so_type == '']
-    database.loc[database.account_no.isin(OP.account_no), 'list_code']='CO'
-    database.loc[database.account_no.isin(OP.account_no), 'src']=so_file.split('/')[-1]
-    database.loc[database.account_no.isin(OP.account_no), 'so_rangedate']=time.strftime("%Y-%m-%d")
-    database.loc[database.account_no.isin(OP.account_no), 'user']=os.getlogin()
+    database.loc[database.mem_wstd.isin(OP.mem_wstd), 'list_code']='CO'
+    database.loc[database.mem_wstd.isin(OP.mem_wstd), 'src']=so_file.split('/')[-1]
+    database.loc[database.mem_wstd.isin(OP.mem_wstd), 'so_rangedate']=time.strftime("%Y-%m-%d")
+    database.loc[database.mem_wstd.isin(OP.mem_wstd), 'user']=os.getlogin()
 
-    database.loc[database.account_no.isin(IR.account_no), 'list_code']='PB'
-    database.loc[database.account_no.isin(IR.account_no), 'src']=so_file.split('/')[-1]
-    database.loc[database.account_no.isin(IR.account_no), 'so_rangedate']=time.strftime("%Y-%m-%d")
-    database.loc[database.account_no.isin(IR.account_no), 'user']=os.getlogin()
+    database.loc[database.mem_wstd.isin(IR.mem_wstd), 'list_code']='PB'
+    database.loc[database.mem_wstd.isin(IR.mem_wstd), 'src']=so_file.split('/')[-1]
+    database.loc[database.mem_wstd.isin(IR.mem_wstd), 'so_rangedate']=time.strftime("%Y-%m-%d")
+    database.loc[database.mem_wstd.isin(IR.mem_wstd), 'user']=os.getlogin()
     if len(database.account_no.isin(CL.account_no))>0:
-        database[database.account_no.isin(CL.account_no)].update(update)
+        database[database.mem_wstd.isin(CL.mem_wstd)].update(update)
     database=database.append(IN)
     no_db_entry=pd.DataFrame()
     no_db_entry=no_db_entry.append(OP)
     no_db_entry=no_db_entry.append(IR)
     no_db_entry=no_db_entry.append(CL)
-    no_db_entry=no_db_entry[(~no_db_entry.account_no.isin(database.account_no))]# &(~no_db_entry.account_no.isin(database.account_no))&(~no_db_entry.account_no.isin(database.account_no))]
+    no_db_entry=no_db_entry[(~no_db_entry.mem_wstd.isin(database.mem_wstd))]# &(~no_db_entry.account_no.isin(database.account_no))&(~no_db_entry.account_no.isin(database.account_no))]
     database=database.append(no_db_entry)
 
     if len(NONE) > 0:
         to_fwf(NONE.drop(['class_code','src','so_rangedate','user']),'no_sotype_%s.txt' % time.strftime("%Y-%m-%d"))
     logging.info("%i entries have been added to the database", len(IN.index))
-    logging.info("%i entries have been updated in the database", sum(database.account_no.isin(CL.account_no)))
-    logging.info("%i entries have been made PB", sum(database.account_no.isin(IR.account_no)))
-    logging.info("%i entries have been made CO",sum(database.account_no.isin(OP.account_no)))
+    logging.info("%i entries have been updated in the database", sum(database.mem_wstd.isin(CL.mem_wstd)))
+    logging.info("%i entries have been made PB", sum(database.mem_wstd.isin(IR.mem_wstd)))
+    logging.info("%i entries have been made CO",sum(database.mem_wstd.isin(OP.mem_wstd)))
     logging.info('%i lines were marked for update but were not in the database. They have been inserted in the database',len(no_db_entry.index) )
 
     logging.info('%i lines had no so_type and have been written for updating',len(NONE.index) )
@@ -119,11 +119,11 @@ def update_database(update_file,database,bigbang=False):
     logging.debug('the following entries have been added to the database')
     logging.debug(IN.last_name)
     logging.debug('The following have been updated')
-    logging.debug(database[database.account_no.isin(CL.account_no)].last_name)
+    logging.debug(database[database.mem_wstd.isin(CL.mem_wstd)].last_name)
     logging.debug('The following have been made PB')
-    logging.debug(database[database.account_no.isin(IR.account_no)].last_name)
+    logging.debug(database[database.mem_wstd.isin(IR.mem_wstd)].last_name)
     logging.debug('The following have been made CO')
-    logging.debug(database[database.account_no.isin(OP.account_no)].last_name)
+    logging.debug(database[database.mem_wstd.isin(OP.mem_wstd)].last_name)
     logging.debug('The following have been marked for update but are not in the db. They have been inserted into the db.')
     logging.debug(no_db_entry.last_name)
     logging.debug('The following lines have no so_type and have been written for updating')
