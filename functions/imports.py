@@ -103,7 +103,7 @@ def update_database(update_file,database,bigbang=False):
     no_db_entry=no_db_entry.append(OP)
     no_db_entry=no_db_entry.append(IR)
     no_db_entry=no_db_entry.append(CL)
-    no_db_entry=no_db_entry[(~no_db_entry.account_no.isin(database.account_no)) &(~no_db_entry.account_no.isin(database.account_no))&(~no_db_entry.account_no.isin(database.account_no))]
+    no_db_entry=no_db_entry[(~no_db_entry.account_no.isin(database.account_no))]# &(~no_db_entry.account_no.isin(database.account_no))&(~no_db_entry.account_no.isin(database.account_no))]
     database=database.append(no_db_entry)
 
     if len(NONE) > 0:
@@ -504,7 +504,7 @@ def expand_abbr(crm):
     return crm
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
-    crm.drop_duplicates('Phone',keep='last',inplace=True)
+    #crm.drop_duplicates('Phone',keep='last',inplace=True)
     crm.name1=crm.name1.str.replace(r'\s{2,10}', ' ')
     crm.name2=crm.name2.str.replace(r'\s{2,10}', ' ')
 
@@ -584,7 +584,7 @@ def find_similar_names(db,probability=0.6):
     return similardb.drop_duplicates()
 
 def find_exceptions(update):
-    exception_list1=update.last_name.str.contains(r'^[-!$%^&*_+|~=`"{}[\]:/;<>?,.@#]|^$|[\xA0-\xC8]|[\xCA-\xD0]|[\xD2-\xE8]|[\xEA-\xF0]|[\xF2-\xFF]', regex=True)
+    exception_list1=update.last_name.str.contains(r'^[-!$%^&*_+|~=`{}[\]:/;<>?,.@#]|^$|[\xA0-\xC8]|[\xCA-\xD0]|[\xD2-\xE8]|[\xEA-\xF0]|[\xF2-\xFF]', regex=True)
     exception_list2=update.mem_wstd.str.contains('.', regex=False)
     exceptions=update[exception_list1 | exception_list2 ]
     filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
