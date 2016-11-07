@@ -529,7 +529,7 @@ def add_product(crm,acc_type):
     return crm
 
 def yp_crm_code(database):
-    classes=pd.read_csv('Company_Class.csv',converters={'last_name':object,'first_name':object,'class_code':str})
+    classes=pd.read_csv('Company_Class.csv',converters={'class_code':str})
     classes.rename(columns={'name1': 'last_name', 'name2': 'first_name','SAM_STNAME':'sam_stname','SAM_BLDNAME':'sam_bldname','SAM_STNMFR':'sam_stnmfr','SAM_STSUBT':'sam_stsubt'}, inplace=True)
     classes_up=classes#.copy()
     classes_up.fillna(value='', inplace=True)
