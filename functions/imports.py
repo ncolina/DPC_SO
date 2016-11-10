@@ -78,7 +78,7 @@ def update_database(update_file,database,bigbang=False):
     update['user']= os.getlogin()
 
     if bigbang == True:
-        update.sort_values(by=['last_name','first_name','sam_stname'],inplace=True)
+        update.sort_values(by=['last_name','first_name','sam_city','sam_stname','sam_bldname','sam_estate'],inplace=True)
         update.drop_duplicates(names,inplace=True)
         update.reset_index(drop=True,inplace=True)
         return update
@@ -424,7 +424,7 @@ def remove_st(crm):
 
 def or_call(crm, multi_or=False):
     crm.reset_index(drop=True,inplace=True)
-    index=crm.duplicated(['name1','name2','City','Province','SAM_STNAME'])
+    index=crm.duplicated(['name1','name2','City','Province','SAM_STNAME','SAM_BLDNAME'])
     skip=False
     for i in xrange(len(index)):
         if index.iloc[i] == True:
@@ -454,7 +454,8 @@ def or_call(crm, multi_or=False):
                     crm.SAM_STNAME.iloc[i]='Or Call'
                 else:
                     crm.Phone.iloc[i]=str(line.Phone)+'/'+str(next_line.Phone)
-                    crm.Phone.iloc[i+1]=np.nan
+                    if index.iloc[i+1]==True:
+                        crm.Phone.iloc[i+1]=np.nan
                     if multi_or==False:
                         try:
                             if index.iloc[i-1] == False: #and index.iloc[i+1]==True:
@@ -506,7 +507,7 @@ def expand_abbr(crm):
     return crm
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
-    #crm.drop_duplicates('Phone',keep='last',inplace=True)
+    crm.drop_duplicates(['Phone','name1'],keep='last',inplace=True)
     crm.name1=crm.name1.str.replace(r'\s{2,10}', ' ')
     crm.name2=crm.name2.str.replace(r'\s{2,10}', ' ')
 
