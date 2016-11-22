@@ -453,8 +453,8 @@ def or_call(crm, multi_or=False):
                 if index.iloc[i-1]==False and index.iloc[i+1]==False:
                     crm.SAM_STNAME.iloc[i]='Or Call'
                 else:
-                    crm.Phone.iloc[i]=str(line.Phone)+'/'+str(next_line.Phone)
                     if index.iloc[i+1]==True:
+                        crm.Phone.iloc[i]=str(line.Phone)+'/'+str(next_line.Phone)
                         crm.Phone.iloc[i+1]=np.nan
                     if multi_or==False:
                         try:
