@@ -423,8 +423,9 @@ def remove_st(crm):
     return crm
 
 def or_call(crm, multi_or=False):
+    crm.sort_values(by=['name1','name2','Areacode','City','Province','SAM_STNAME','SAM_BLDNAME'],inplace=True)
     crm.reset_index(drop=True,inplace=True)
-    index=crm.duplicated(['name1','name2','City','Province','SAM_STNAME','SAM_BLDNAME'])
+    index=crm.duplicated(['name1','name2','City','Province','SAM_STNAME','SAM_BLDNAME','Areacode'])
     skip=False
     for i in xrange(len(index)):
         if index.iloc[i] == True:
