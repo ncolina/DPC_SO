@@ -67,7 +67,6 @@ def update_database(update_file,database,bigbang=False):
 
     update=find_exceptions(update)
 
-
     update['acc_type']=update['acc_type']#.astype('category')
     update['class_code']=''
     #update=add_class_code(update)
@@ -77,6 +76,9 @@ def update_database(update_file,database,bigbang=False):
     update['so_rangedate']=time.strftime("%Y-%m-%d")
     update['user']= os.getlogin()
 
+    joints=update[update['joint_user']!=''].copy()
+    joints['last_name']=joints['joint_user']
+    update=update.append(joints)
     if bigbang == True:
         update.sort_values(by=['last_name','first_name','sam_city','sam_stname','sam_bldname','sam_estate'],inplace=True)
         update.drop_duplicates(names,inplace=True)
