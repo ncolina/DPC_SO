@@ -78,6 +78,7 @@ def update_database(update_file,database,bigbang=False):
 
     joints=update[update['joint_user']!=''].copy()
     joints['last_name']=joints['joint_user']
+    joints['list_code']='PB'
     update=update.append(joints)
     if bigbang == True:
         update.sort_values(by=['last_name','first_name','sam_city','sam_stname','sam_bldname','sam_estate'],inplace=True)
