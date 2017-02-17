@@ -79,6 +79,7 @@ def update_database(update_file,database,bigbang=False):
     joints=update[update['joint_user']!=''].copy()
     joints['last_name']=joints['joint_user']
     joints['joint_user']=''
+    joints['first_name']=''
     joints['list_code']='PB'
     update=update.append(joints)
     if bigbang == True:
