@@ -513,7 +513,7 @@ def expand_abbr(crm):
     return crm
 
 def fix_duplicate(crm): #only does repeated numbers. Next needs to look for repeated adresses but not exact.
-    crm.drop_duplicates(['Phone','name1'],keep='last',inplace=True)
+    crm.drop_duplicates(['Phone','name1','name2'],keep='last',inplace=True)
     crm.name1=crm.name1.str.replace(r'\s{2,10}', ' ')
     crm.name2=crm.name2.str.replace(r'\s{2,10}', ' ')
 
