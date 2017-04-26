@@ -64,9 +64,10 @@ def update_database(update_file,database,bigbang=False):
                    encoding='U8'
                   )
     update.fillna('', inplace=True)
-
+    if (update['list_code'].iloc[0] != 'PB') and (update['list_code'].iloc[0] != 'CO'):
+        print update['list_code'].iloc[0]
+        raise "Input file spacing is off. Please check."
     update=find_exceptions(update)
-
     update['acc_type']=update['acc_type']#.astype('category')
     update['class_code']=''
     #update=add_class_code(update)
@@ -112,7 +113,7 @@ def update_database(update_file,database,bigbang=False):
     database=database.append(no_db_entry)
 
     if len(NONE) > 0:
-        to_fwf(NONE.drop(['class_code','src','so_rangedate','user']),'no_sotype_%s.txt' % time.strftime("%Y-%m-%d"))
+        to_fwf(NONE.drop(['class_code','src','so_rangedate','user'],axis=1),'no_sotype_%s.txt' % time.strftime("%Y-%m-%d"))
     logging.info("%i entries have been added to the database", len(IN.index))
     logging.info("%i entries have been updated in the database", sum(database.mem_wstd.isin(CL.mem_wstd)))
     logging.info("%i entries have been made PB", sum(database.mem_wstd.isin(IR.mem_wstd)))
@@ -540,12 +541,13 @@ def add_product(crm,acc_type):
 def yp_crm_code(database):
     classes=pd.read_csv('Company_Class.csv',converters={'name1':str,'name2':str,'class_code':str})
     classes.rename(columns={'name1': 'last_name', 'name2': 'first_name','SAM_STNAME':'sam_stname','SAM_BLDNAME':'sam_bldname','SAM_STNMFR':'sam_stnmfr','SAM_STSUBT':'sam_stsubt'}, inplace=True)
+    classes.drop(['sam_stname','sam_bldname','sam_stsubt','sam_stnmfr'], inplace=True)
     classes_up=classes#.copy()
     classes_up.last_name=classes_up.last_name.str.upper()
     classes_up.first_name=classes_up.first_name.str.upper()
-    classes_up.sam_stname=classes_up.sam_stname.str.upper()
-    classes_up.sam_bldname=classes_up.sam_bldname.str.upper()
-    classes_up.sam_stsubt=classes_up.sam_stsubt.str.upper()
+    #classes_up.sam_stname=classes_up.sam_stname.str.upper()
+    #classes_up.sam_bldname=classes_up.sam_bldname.str.upper()
+    #classes_up.sam_stsubt=classes_up.sam_stsubt.str.upper()
     classes_up.Phone=classes_up.Phone.astype('float64')
     classes_up.Areacode=classes_up.Areacode.astype('float64')
     classes_up.class_code=classes_up.class_code.astype('str')
@@ -554,15 +556,15 @@ def yp_crm_code(database):
     database_up=database#.copy()
     database_up.last_name=database_up.last_name.str.upper()
     database_up.first_name=database_up.first_name.str.upper()
-    database_up.sam_stname=database_up.sam_stname.str.upper()
-    database_up.sam_bldname=database_up.sam_bldname.str.upper()
-    database_up.sam_stsubt=database_up.sam_stsubt.str.upper()
+    #database_up.sam_stname=database_up.sam_stname.str.upper()
+    #database_up.sam_bldname=database_up.sam_bldname.str.upper()
+    #database_up.sam_stsubt=database_up.sam_stsubt.str.upper()
     #database_up = database_up.drop('Product', 1)
     #database_up.update(classes_up)
     database_up['Phone']=database_up.mem_wstd.str.slice(-7).astype('float64')
     database_up['Areacode']=database_up.mem_wstd.str.slice(0,-7).astype('float64')
-    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name','sam_stname','sam_bldname','sam_stnmfr','sam_stsubt'], how='inner')
-    database_coded=pd.merge(database_coded,classes_up)
+    database_coded=pd.merge(database_up,classes_up, on=['Areacode','Phone','last_name','first_name'], how='inner')
+    #database_coded=pd.merge(database_coded,classes_up)
     #database_coded.last_name=database.last_name
     #database_coded.first_name=database.first_name
     #database_coded.sam_stname=database.sam_stname
@@ -596,11 +598,12 @@ def find_exceptions(update):
     exception_list1=update.last_name.str.contains(r'^[-!$%^&*_+|~=`{}[\]:/;<>?,.@#]|^$|[\xA0-\xC8]|[\xCA-\xD0]|[\xD2-\xE8]|[\xEA-\xF0]|[\xF2-\xFF]', regex=True)
     exception_list2=update.mem_wstd.str.contains('.', regex=False)
     exceptions=update[exception_list1 | exception_list2 ]
-    filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
-    to_fwf(exceptions,filename)
-    logging.info('%i lines have been tagged as exceptions and have been written to %s'%(len(exceptions),filename))
-    logging.debug('The following are marked as exceptions')
-    logging.debug(exceptions.last_name)
+    if len(exceptions)>0:
+        filename='exceptions-%s.txt' % time.strftime('%Y-%m-%d-%H-%M-%S')
+        to_fwf(exceptions,filename)
+        logging.info('%i lines have been tagged as exceptions and have been written to %s'%(len(exceptions),filename))
+        logging.debug('The following are marked as exceptions')
+        logging.debug(exceptions.last_name)
     return update[~(exception_list1|exception_list2)]
 
 def to_fwf(db,filename):
