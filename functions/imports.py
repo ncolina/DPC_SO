@@ -541,7 +541,7 @@ def add_product(crm,acc_type):
 def yp_crm_code(database):
     classes=pd.read_csv('Company_Class.csv',converters={'name1':str,'name2':str,'class_code':str})
     classes.rename(columns={'name1': 'last_name', 'name2': 'first_name','SAM_STNAME':'sam_stname','SAM_BLDNAME':'sam_bldname','SAM_STNMFR':'sam_stnmfr','SAM_STSUBT':'sam_stsubt'}, inplace=True)
-    classes.drop(['sam_stname','sam_bldname','sam_stsubt','sam_stnmfr'], inplace=True)
+    classes.drop(['sam_stname','sam_bldname','sam_stsubt','sam_stnmfr'],axis=1, inplace=True)
     classes_up=classes#.copy()
     classes_up.last_name=classes_up.last_name.str.upper()
     classes_up.first_name=classes_up.first_name.str.upper()
@@ -571,7 +571,9 @@ def yp_crm_code(database):
     #database_coded.sam_bldname=database.sam_bldname
     #database_coded.sam_stnmfr=database.sam_stnmfr
     #database_coded.sam_stname=database.sam_stname
-    database_coded = database_coded.drop(['Phone','Areacode'], 1)
+    database_coded = database_coded.drop(['Phone','Areacode','class_code_x'], 1)
+    database_coded.rename(columns={'class_code_y':'class_code'}, inplace=True)
+
     database_coded.fillna(value='', inplace=True)
 
     return database_coded
