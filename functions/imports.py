@@ -440,7 +440,7 @@ def or_call(crm, multi_or=False):
             try:
                 next_line=crm.iloc[i+1]
             except:
-                pass
+                skip=True
 
             try:
                 crm.SAM_BLDNAME.iloc[i]=''
