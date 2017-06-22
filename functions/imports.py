@@ -441,7 +441,7 @@ def or_call(crm, multi_or=False):
                 next_line=crm.iloc[i+1]
             except:
                 skip=True
-                if multi_or=False:
+                if multi_or==False:
                     if index.iloc[i-1]==False:
                         crm.SAM_STNAME.iloc[i]='Or Call'
                     else:
