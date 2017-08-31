@@ -103,7 +103,8 @@ def update_database(update_file,database,bigbang=False):
     database.loc[database.mem_wstd.isin(IR.mem_wstd), 'so_rangedate']=time.strftime("%Y-%m-%d")
     database.loc[database.mem_wstd.isin(IR.mem_wstd), 'user']=os.getlogin()
     if len(database.account_no.isin(CL.account_no))>0:
-        database[database.mem_wstd.isin(CL.mem_wstd)].update(CL)
+        database[database.mem_wstd.isin(CL.mem_wstd)].join(CL, on='mem_wstd')
+        #database[database.mem_wstd.isin(CL.mem_wstd)].update(CL)
     database=database.append(IN)
     no_db_entry=pd.DataFrame()
     no_db_entry=no_db_entry.append(OP)
