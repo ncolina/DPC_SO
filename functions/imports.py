@@ -104,7 +104,7 @@ def update_database(update_file,database,bigbang=False):
     database.loc[database.mem_wstd.isin(IR.mem_wstd), 'user']=os.getlogin()
     if len(database.account_no.isin(CL.account_no))>0:
         database = database[~database.mem_wstd.isin(CL.mem_wstd)]
-        database.append(CL)
+        database = database.append(CL)
     database=database.append(IN)
     no_db_entry=pd.DataFrame()
     no_db_entry=no_db_entry.append(OP)
